@@ -1,0 +1,88 @@
+body {
+    font-family: Arial, sans-serif;
+    background: #f5f7fb;
+    margin: 0;
+    padding: 0;
+}
+
+.container {
+    max-width: 500px;
+    margin: 50px auto;
+    background: white;
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+}
+
+h1 {
+    text-align: center;
+}
+
+h2 {
+    margin-top: 20px;
+}
+
+/* DÍAS */
+.dias {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.dias button {
+    padding: 10px 15px;
+    margin: 5px;
+    border: none;
+    border-radius: 8px;
+    background: #e0e7ff;
+    cursor: pointer;
+}
+
+.dias button.activo {
+    background: #6366f1;
+    color: white;
+}
+
+/* HORARIOS */
+.horarios {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.horarios button {
+    padding: 8px 12px;
+    margin: 5px;
+    border: none;
+    border-radius: 6px;
+    background: #d1fae5;
+    cursor: pointer;
+}
+
+.horarios button.activo {
+    background: #10b981;
+    color: white;
+}
+
+/* INPUTS */
+input {
+    width: 100%;
+    padding: 10px;
+    margin-top: 10px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+}
+
+/* BOTÓN */
+.btn-reservar {
+    width: 100%;
+    padding: 12px;
+    margin-top: 15px;
+    background: #6366f1;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.btn-reservar:hover {
+    background: #4f46e5;
+}

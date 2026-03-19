@@ -1,92 +1,13 @@
 <!DOCTYPE html>
+{% load static %}
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <title>Reserva</title>
 
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background: #f5f7fb;
-            margin: 0;
-            padding: 0;
-        }
-
-        .container {
-            max-width: 500px;
-            margin: 50px auto;
-            background: white;
-            padding: 25px;
-            border-radius: 12px;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
-        }
-
-        h1 { text-align: center; }
-        h2 { margin-top: 20px; }
-
-        .dias button {
-            padding: 10px 15px;
-            margin: 5px;
-            border: none;
-            border-radius: 8px;
-            background: #e0e7ff;
-            cursor: pointer;
-        }
-
-        .dias button:hover {
-            background: #6366f1;
-            color: white;
-        }
-
-        .horarios button {
-            padding: 8px 12px;
-            margin: 5px;
-            border: none;
-            border-radius: 6px;
-            background: #d1fae5;
-            cursor: pointer;
-        }
-
-        .horarios button:hover {
-            background: #10b981;
-            color: white;
-        }
-
-        /* 🔥 LO NUEVO */
-        .dias button.activo {
-            background: #6366f1;
-            color: white;
-        }
-
-        .horarios button.activo {
-            background: #10b981;
-            color: white;
-        }
-
-        input {
-            width: 100%;
-            padding: 10px;
-            margin-top: 10px;
-            border-radius: 6px;
-            border: 1px solid #ccc;
-        }
-
-        .btn-reservar {
-            width: 100%;
-            padding: 12px;
-            margin-top: 15px;
-            background: #6366f1;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-        }
-
-        .btn-reservar:hover {
-            background: #4f46e5;
-        }
-    </style>
+    <link rel="stylesheet" href="{% static 'agenda/styles.css' %}">
 </head>
+
 <body>
 
 <div class="container">
@@ -105,91 +26,13 @@
     <button class="btn-reservar" onclick="reservar()">Reservar</button>
 </div>
 
+<!-- JS SIEMPRE ABAJO -->
 <script>
-let fechaSeleccionada = null;
-let horaSeleccionada = null;
-
-const hoy = new Date();
-const mes = (hoy.getMonth() + 1).toString().padStart(2, '0');
-const anio = hoy.getFullYear();
-
-// Cargar días
-fetch(`/api/{{ slug }}/dias/`)
-.then(res => res.json())
-.then(data => {
-    const diasDiv = document.getElementById('dias');
-
-    Object.entries(data.dias).forEach(([dia, estado]) => {
-        if (estado === 'disponible') {
-            const btn = document.createElement('button');
-            btn.innerText = dia;
-
-            btn.onclick = () => {
-                // limpiar selección anterior
-                document.querySelectorAll('.dias button')
-                    .forEach(b => b.classList.remove('activo'));
-
-                // marcar actual
-                btn.classList.add('activo');
-
-                fechaSeleccionada = `${anio}-${mes}-${dia.padStart(2,'0')}`;
-
-                cargarHorarios();
-            };
-
-            diasDiv.appendChild(btn);
-        }
-    });
-});
-
-// Cargar horarios
-function cargarHorarios() {
-    fetch(`/api/{{ slug }}/horarios/?fecha=${fechaSeleccionada}`)
-    .then(res => res.json())
-    .then(data => {
-        const div = document.getElementById('horarios');
-        div.innerHTML = '';
-
-        data.horarios.forEach(h => {
-            const btn = document.createElement('button');
-            btn.innerText = h;
-
-            btn.onclick = () => {
-                document.querySelectorAll('.horarios button')
-                    .forEach(b => b.classList.remove('activo'));
-
-                btn.classList.add('activo');
-
-                horaSeleccionada = h;
-            };
-
-            div.appendChild(btn);
-        });
-    });
-}
-
-// Reservar
-function reservar() {
-    const nombre = document.getElementById('nombre').value;
-    const email = document.getElementById('email').value;
-
-    fetch(`/api/{{ slug }}/reservar/`, {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({
-            nombre,
-            email,
-            fecha: fechaSeleccionada,
-            hora: horaSeleccionada
-        })
-    })
-    .then(res => res.json())
-    .then(data => {
-        if (data.ok) {
-            alert("Reserva creada ✅");
-        } else {
-            alert("Error ❌");
-        }
-    });
-}
+const slug = "{{ slug }}";
 </script>
+
+<script src="{% static 'agenda/app.js' %}"></script>
+
+</body>
+</html>
+
