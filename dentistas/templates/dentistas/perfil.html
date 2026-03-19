@@ -1,0 +1,115 @@
+{% extends "dentistas/base.html" %}
+{% block title %}Mi Perfil{% endblock %}
+{% block topbar_title %}Mi Perfil{% endblock %}
+
+{% block content %}
+<div style="max-width:580px">
+
+  {% if ok %}
+  <div class="alert alert-success">✓ Perfil actualizado correctamente.</div>
+  {% endif %}
+  {% if error %}
+  <div class="alert alert-error">{{ error }}</div>
+  {% endif %}
+
+  <div class="card" style="margin-bottom:20px">
+    <div class="card-header">
+      <div class="card-title">Datos del consultorio</div>
+    </div>
+    <div class="card-body">
+      <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        <div class="form-group">
+          <label class="form-label">Nombre del consultorio</label>
+          <input type="text" name="consultorio" class="form-control"
+                 value="{{ dentista.nombre_consultorio }}" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Teléfono de contacto</label>
+          <input type="tel" name="telefono" class="form-control"
+                 value="{{ dentista.telefono }}" placeholder="+56 9 1234 5678">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Descripción (visible para los pacientes)</label>
+          <textarea name="descripcion" class="form-control" rows="3"
+                    placeholder="Odontología general, estética dental, implantes…">{{ dentista.descripcion }}</textarea>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Dirección</label>
+          <input type="text" name="direccion" class="form-control"
+                 value="{{ dentista.direccion }}" placeholder="Av. Principal 123, Ciudad">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Color de marca</label>
+          <div style="display:flex;align-items:center;gap:10px">
+            <input type="color" name="color" value="{{ dentista.color_principal }}"
+                   style="width:44px;height:36px;border:1.5px solid #e5e7eb;border-radius:8px;padding:2px;cursor:pointer">
+            <input type="text" id="color-hex" value="{{ dentista.color_principal }}"
+                   class="form-control" style="max-width:120px;font-family:'DM Mono',monospace"
+                   readonly>
+            <span style="font-size:12px;color:#9ca3af">Este color aparece en tu página de reservas.</span>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Foto de perfil</label>
+          {% if dentista.foto_perfil %}
+          <div style="margin-bottom:8px">
+            <img src="{{ dentista.foto_perfil.url }}" alt="Foto actual"
+                 style="width:64px;height:64px;border-radius:50%;object-fit:cover;border:2px solid #e5e7eb">
+          </div>
+          {% endif %}
+          <input type="file" name="foto_perfil" accept="image/*" class="form-control">
+          <div class="form-hint">JPG o PNG. Aparece en la cabecera de tu página pública.</div>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Guardar cambios</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Info de la cuenta -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">Información de la cuenta</div>
+    </div>
+    <div class="card-body">
+      <table class="tabla">
+        <tr>
+          <td style="color:#6b7280;width:140px">Email</td>
+          <td>{{ dentista.usuario.email }}</td>
+        </tr>
+        <tr>
+          <td style="color:#6b7280">Slug / URL</td>
+          <td>
+            <code style="font-family:'DM Mono',monospace;font-size:13px;color:#059669">/{{ dentista.slug }}/</code>
+          </td>
+        </tr>
+        <tr>
+          <td style="color:#6b7280">Enlace público</td>
+          <td>
+            <a href="/{{ dentista.slug }}/" target="_blank"
+               style="color:#059669;text-decoration:underline;font-size:13px">
+              Ver mi página →
+            </a>
+          </td>
+        </tr>
+      </table>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const colorInput = document.querySelector('input[type="color"]');
+const hexInput   = document.getElementById('color-hex');
+colorInput.addEventListener('input', () => { hexInput.value = colorInput.value; });
+</script>
+{% endblock %}

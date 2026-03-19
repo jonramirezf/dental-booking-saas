@@ -1,0 +1,349 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{% block title %}Panel{% endblock %} — DentalSaaS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ── RESET & BASE ── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',system-ui,sans-serif;background:#f7f8fc;color:#1a1d23;min-height:100vh}
+a{color:inherit;text-decoration:none}
+button{font-family:inherit;cursor:pointer}
+input,select,textarea{font-family:inherit}
+
+/* ── LAYOUT ── */
+.layout{display:flex;min-height:100vh}
+
+/* ── SIDEBAR ── */
+.sidebar{
+  width:232px;flex-shrink:0;
+  background:#111827;
+  display:flex;flex-direction:column;
+  position:sticky;top:0;height:100vh;overflow:hidden;
+}
+.sidebar-logo{
+  padding:24px 20px 20px;
+  border-bottom:1px solid #1f2937;
+}
+.logo-mark{
+  display:flex;align-items:center;gap:10px;
+}
+.logo-icon{
+  width:34px;height:34px;border-radius:9px;
+  background:linear-gradient(135deg,#10b981,#059669);
+  display:flex;align-items:center;justify-content:center;
+  font-size:16px;font-weight:700;color:#fff;
+}
+.logo-text{font-size:15px;font-weight:600;color:#f9fafb;letter-spacing:-.3px}
+.logo-sub{font-size:11px;color:#6b7280;margin-top:1px}
+
+.sidebar-dentista{
+  padding:16px 20px;border-bottom:1px solid #1f2937;
+}
+.sd-name{font-size:13px;font-weight:500;color:#e5e7eb;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sd-slug{font-size:11px;color:#6b7280;margin-top:2px}
+.sd-badge{
+  display:inline-block;font-size:10px;padding:2px 8px;
+  border-radius:20px;background:#064e3b;color:#34d399;
+  margin-top:6px;font-weight:500;
+}
+
+.sidebar-nav{flex:1;padding:12px 12px;overflow-y:auto}
+.nav-section{font-size:10px;font-weight:600;color:#4b5563;letter-spacing:.08em;padding:10px 8px 6px;text-transform:uppercase}
+.nav-item{
+  display:flex;align-items:center;gap:10px;
+  padding:9px 12px;border-radius:8px;
+  font-size:13px;font-weight:500;color:#9ca3af;
+  transition:all .15s;margin-bottom:2px;
+}
+.nav-item:hover{background:#1f2937;color:#f9fafb}
+.nav-item.active{background:#065f46;color:#ecfdf5}
+.nav-item .ni-icon{width:16px;height:16px;opacity:.7;flex-shrink:0}
+.nav-item.active .ni-icon{opacity:1}
+
+.sidebar-footer{
+  padding:16px 20px;border-top:1px solid #1f2937;
+}
+.sidebar-link-public{
+  display:flex;align-items:center;gap:8px;
+  font-size:12px;color:#6b7280;
+  padding:8px 0;transition:color .15s;
+}
+.sidebar-link-public:hover{color:#34d399}
+.btn-logout{
+  display:flex;align-items:center;gap:8px;
+  width:100%;padding:9px 12px;margin-top:6px;
+  border-radius:8px;border:none;background:transparent;
+  font-size:13px;color:#6b7280;transition:all .15s;
+  text-align:left;
+}
+.btn-logout:hover{background:#1f2937;color:#f87171}
+
+/* ── MAIN ── */
+.main{flex:1;min-width:0;display:flex;flex-direction:column}
+
+.topbar{
+  background:#fff;border-bottom:1px solid #e5e7eb;
+  padding:0 32px;height:60px;
+  display:flex;align-items:center;justify-content:space-between;
+  position:sticky;top:0;z-index:10;
+}
+.topbar-title{font-size:16px;font-weight:600;color:#111827}
+.topbar-right{display:flex;align-items:center;gap:12px}
+.topbar-avatar{
+  width:32px;height:32px;border-radius:50%;
+  background:#d1fae5;color:#065f46;
+  font-size:12px;font-weight:600;
+  display:flex;align-items:center;justify-content:center;
+}
+
+.content{padding:32px;flex:1}
+
+/* ── STAT CARDS ── */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:16px;margin-bottom:28px}
+.stat-card{
+  background:#fff;border-radius:12px;padding:20px;
+  border:1px solid #f3f4f6;
+}
+.stat-label{font-size:12px;color:#6b7280;font-weight:500;margin-bottom:8px}
+.stat-value{font-size:28px;font-weight:600;color:#111827;line-height:1}
+.stat-sub{font-size:11px;color:#9ca3af;margin-top:6px}
+.stat-card.green .stat-value{color:#059669}
+.stat-card.amber .stat-value{color:#d97706}
+.stat-card.blue  .stat-value{color:#2563eb}
+
+/* ── CARDS ── */
+.card{background:#fff;border-radius:12px;border:1px solid #f3f4f6;margin-bottom:20px}
+.card-header{
+  padding:18px 20px;border-bottom:1px solid #f3f4f6;
+  display:flex;align-items:center;justify-content:space-between;
+}
+.card-title{font-size:14px;font-weight:600;color:#111827}
+.card-body{padding:20px}
+
+/* ── TABLA RESERVAS ── */
+.tabla{width:100%;border-collapse:collapse;font-size:13px}
+.tabla th{
+  text-align:left;padding:10px 12px;
+  font-size:11px;font-weight:600;color:#6b7280;
+  text-transform:uppercase;letter-spacing:.05em;
+  border-bottom:1px solid #f3f4f6;background:#fafafa;
+}
+.tabla td{padding:13px 12px;border-bottom:1px solid #f9fafb;vertical-align:middle}
+.tabla tr:last-child td{border-bottom:none}
+.tabla tr:hover td{background:#fafafa}
+
+/* ── BADGES DE ESTADO ── */
+.badge{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:500;padding:3px 9px;border-radius:20px}
+.badge.pendiente {background:#fffbeb;color:#92400e}
+.badge.confirmada{background:#ecfdf5;color:#065f46}
+.badge.cancelada {background:#fef2f2;color:#991b1b}
+.badge.completada{background:#eff6ff;color:#1e40af}
+.badge::before{content:'';width:5px;height:5px;border-radius:50%;background:currentColor}
+
+/* ── BOTONES ── */
+.btn{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:8px 14px;border-radius:8px;border:none;
+  font-size:13px;font-weight:500;transition:all .15s;
+}
+.btn-sm{padding:5px 10px;font-size:12px;border-radius:6px}
+.btn-primary{background:#059669;color:#fff}
+.btn-primary:hover{background:#047857}
+.btn-secondary{background:#f3f4f6;color:#374151}
+.btn-secondary:hover{background:#e5e7eb}
+.btn-danger{background:#fee2e2;color:#991b1b}
+.btn-danger:hover{background:#fecaca}
+.btn-success{background:#d1fae5;color:#065f46}
+.btn-success:hover{background:#a7f3d0}
+
+/* ── FORM ── */
+.form-group{margin-bottom:16px}
+.form-label{display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:6px;text-transform:uppercase;letter-spacing:.04em}
+.form-control{
+  width:100%;padding:10px 12px;
+  border:1.5px solid #e5e7eb;border-radius:8px;
+  font-size:14px;color:#111827;
+  transition:border-color .15s;outline:none;
+}
+.form-control:focus{border-color:#10b981}
+.form-error{font-size:12px;color:#ef4444;margin-top:4px}
+.form-hint {font-size:12px;color:#9ca3af;margin-top:4px}
+
+/* ── DÍAS SEMANA AGENDA ── */
+.agenda-grid{display:grid;gap:10px}
+.dia-row{
+  background:#fff;border-radius:10px;border:1.5px solid #f3f4f6;
+  padding:16px 18px;display:flex;align-items:center;gap:16px;
+  transition:border-color .15s;
+}
+.dia-row.activo{border-color:#10b981;background:#f0fdf4}
+.dia-nombre{width:90px;font-size:14px;font-weight:600;color:#374151;flex-shrink:0}
+.dia-config{flex:1;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.dia-horario{font-size:13px;color:#059669;font-weight:500}
+.dia-sin{font-size:13px;color:#9ca3af}
+.dia-actions{display:flex;gap:6px;flex-shrink:0}
+
+/* ── TOGGLE ── */
+.toggle-wrap{display:flex;align-items:center;gap:6px}
+.toggle{position:relative;width:36px;height:20px;display:inline-block}
+.toggle input{opacity:0;width:0;height:0}
+.toggle-slider{
+  position:absolute;inset:0;background:#e5e7eb;border-radius:20px;
+  transition:.2s;cursor:pointer;
+}
+.toggle-slider::before{
+  content:'';position:absolute;width:16px;height:16px;
+  left:2px;top:2px;background:#fff;border-radius:50%;transition:.2s;
+}
+.toggle input:checked + .toggle-slider{background:#10b981}
+.toggle input:checked + .toggle-slider::before{transform:translateX(16px)}
+
+/* ── ALERT ── */
+.alert{padding:12px 16px;border-radius:8px;font-size:13px;margin-bottom:16px}
+.alert-success{background:#ecfdf5;color:#065f46;border:1px solid #a7f3d0}
+.alert-error  {background:#fef2f2;color:#991b1b;border:1px solid #fecaca}
+
+/* ── MODAL ── */
+.modal-overlay{
+  display:none;position:fixed;inset:0;
+  background:rgba(0,0,0,.45);z-index:100;
+  align-items:center;justify-content:center;
+}
+.modal-overlay.open{display:flex}
+.modal{
+  background:#fff;border-radius:14px;padding:28px;
+  width:100%;max-width:420px;margin:16px;
+}
+.modal-title{font-size:16px;font-weight:600;margin-bottom:20px}
+
+/* ── EMPTY STATE ── */
+.empty{text-align:center;padding:48px 20px;color:#9ca3af}
+.empty-icon{font-size:40px;margin-bottom:12px}
+.empty-text{font-size:14px}
+
+/* ── FILTROS ── */
+.filtros{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:20px}
+.filtro-btn{
+  padding:6px 14px;border-radius:20px;border:1.5px solid #e5e7eb;
+  font-size:12px;font-weight:500;color:#6b7280;background:#fff;
+  transition:all .15s;
+}
+.filtro-btn:hover{border-color:#d1d5db;color:#374151}
+.filtro-btn.active{background:#ecfdf5;border-color:#10b981;color:#065f46}
+
+/* ── MOBILE ── */
+@media(max-width:768px){
+  .sidebar{display:none}
+  .content{padding:16px}
+  .topbar{padding:0 16px}
+  .stats-grid{grid-template-columns:repeat(2,1fr)}
+}
+</style>
+</head>
+<body>
+<div class="layout">
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-mark">
+      <div class="logo-icon">D</div>
+      <div>
+        <div class="logo-text">DentalSaaS</div>
+        <div class="logo-sub">Panel de gestión</div>
+      </div>
+    </div>
+  </div>
+
+  {% if dentista %}
+  <div class="sidebar-dentista">
+    <div class="sd-name">{{ dentista.nombre_consultorio }}</div>
+    <div class="sd-slug">/{{ dentista.slug }}/</div>
+    <div class="sd-badge">Activo</div>
+  </div>
+  {% endif %}
+
+  <nav class="sidebar-nav">
+    <div class="nav-section">Principal</div>
+
+    <a href="{% url 'dentistas:dashboard' %}"
+       class="nav-item {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+      <svg class="ni-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+      </svg>
+      Inicio
+    </a>
+
+    <a href="{% url 'dentistas:reservas' %}"
+       class="nav-item {% if request.resolver_match.url_name == 'reservas' %}active{% endif %}">
+      <svg class="ni-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+      </svg>
+      Reservas
+    </a>
+
+    <a href="{% url 'dentistas:agenda' %}"
+       class="nav-item {% if request.resolver_match.url_name == 'agenda' %}active{% endif %}">
+      <svg class="ni-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+      </svg>
+      Mi Agenda
+    </a>
+
+    <div class="nav-section" style="margin-top:8px">Cuenta</div>
+
+    <a href="{% url 'dentistas:perfil' %}"
+       class="nav-item {% if request.resolver_match.url_name == 'perfil' %}active{% endif %}">
+      <svg class="ni-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+      </svg>
+      Mi Perfil
+    </a>
+  </nav>
+
+  <div class="sidebar-footer">
+    {% if dentista %}
+    <a href="/{{ dentista.slug }}/" target="_blank" class="sidebar-link-public">
+      <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+      </svg>
+      Ver página pública
+    </a>
+    {% endif %}
+    <form method="post" action="{% url 'dentistas:logout' %}">
+      {% csrf_token %}
+      <button type="submit" class="btn-logout">
+        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+        </svg>
+        Cerrar sesión
+      </button>
+    </form>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<div class="main">
+  <header class="topbar">
+    <div class="topbar-title">{% block topbar_title %}Panel{% endblock %}</div>
+    <div class="topbar-right">
+      {% if dentista %}
+      <div class="topbar-avatar">{{ dentista.nombre_consultorio|slice:":2"|upper }}</div>
+      {% endif %}
+    </div>
+  </header>
+
+  <main class="content">
+    {% block content %}{% endblock %}
+  </main>
+</div>
+
+</div><!-- /layout -->
+{% block extra_js %}{% endblock %}
+</body>
+</html>

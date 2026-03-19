@@ -1,0 +1,201 @@
+{% extends "dentistas/base.html" %}
+{% load agenda_extras %}
+
+{% block title %}Mi Agenda{% endblock %}
+{% block topbar_title %}Configurar Agenda{% endblock %}
+
+{% block content %}
+
+<div style="max-width:640px">
+
+  <div class="card" style="margin-bottom:20px">
+    <div class="card-header">
+      <div class="card-title">Horarios de atención</div>
+      <span style="font-size:12px;color:#9ca3af">
+        Haz clic en un día para editarlo
+      </span>
+    </div>
+
+    <div class="card-body">
+      <div class="agenda-grid">
+
+        {% for dia_num, dia_nombre in DIAS %}
+        {% with config=dias_configurados|get_item:dia_num %}
+
+        <div class="dia-row {% if config %}activo{% endif %}">
+          
+          <div class="dia-nombre">{{ dia_nombre }}</div>
+
+          <div class="dia-config">
+            {% if config %}
+              <span class="dia-horario">
+                {{ config.hora_inicio|time:"H:i" }} – {{ config.hora_fin|time:"H:i" }}
+              </span>
+              <span style="font-size:12px;color:#9ca3af">·</span>
+              <span style="font-size:12px;color:#6b7280">
+                {{ config.duracion_cita }} min/cita
+              </span>
+            {% else %}
+              <span class="dia-sin">Sin horario</span>
+            {% endif %}
+          </div>
+
+          <div class="dia-actions">
+
+            <!-- BOTÓN EDITAR / AGREGAR -->
+            <button class="btn btn-secondary btn-sm"
+              onclick="abrirModal(
+                {{ dia_num }},
+                '{{ dia_nombre }}',
+                '{% if config %}{{ config.hora_inicio|time:"H:i" }}{% else %}09:00{% endif %}',
+                '{% if config %}{{ config.hora_fin|time:"H:i" }}{% else %}18:00{% endif %}',
+                {% if config %}{{ config.duracion_cita }}{% else %}30{% endif %}
+              )">
+
+              {% if config %}Editar{% else %}Agregar{% endif %}
+            </button>
+
+            {% if config %}
+            <button class="btn btn-danger btn-sm"
+              onclick="eliminarDia({{ dia_num }}, '{{ dia_nombre }}')">
+              ✕
+            </button>
+            {% endif %}
+
+          </div>
+
+        </div>
+
+        {% endwith %}
+        {% endfor %}
+
+      </div>
+    </div>
+  </div>
+
+  <!-- INFO -->
+  <div class="alert alert-success">
+    <strong>¿Cómo funciona?</strong> Los horarios que configures aquí generan automáticamente
+    los slots disponibles para los pacientes. Si un día no tiene horario,
+    no aparecerá como disponible en tu página pública.
+  </div>
+
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    
+    <div class="modal-title" id="modal-title">Configurar día</div>
+
+    <div class="form-group">
+      <label>Hora de inicio</label>
+      <input type="time" id="m-inicio" value="09:00">
+    </div>
+
+    <div class="form-group">
+      <label>Hora de fin</label>
+      <input type="time" id="m-fin" value="18:00">
+    </div>
+
+    <div class="form-group">
+      <label>Duración</label>
+      <select id="m-duracion">
+        <option value="15">15 min</option>
+        <option value="20">20 min</option>
+        <option value="30" selected>30 min</option>
+        <option value="45">45 min</option>
+        <option value="60">60 min</option>
+      </select>
+    </div>
+
+    <div id="modal-error" style="color:red;display:none"></div>
+
+    <div style="margin-top:10px">
+      <button onclick="guardarDia()">Guardar</button>
+      <button onclick="cerrarModal()">Cancelar</button>
+    </div>
+
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+
+<script>
+
+let diaActual = null;
+
+function abrirModal(num, nombre, inicio, fin, duracion) {
+  diaActual = num;
+
+  document.getElementById('modal-title').textContent = "Horario - " + nombre;
+  document.getElementById('m-inicio').value = inicio;
+  document.getElementById('m-fin').value = fin;
+  document.getElementById('m-duracion').value = duracion;
+
+  document.getElementById('modal').classList.add('open');
+}
+
+function cerrarModal() {
+  document.getElementById('modal').classList.remove('open');
+}
+
+function guardarDia() {
+
+  const inicio = document.getElementById('m-inicio').value;
+  const fin = document.getElementById('m-fin').value;
+  const duracion = document.getElementById('m-duracion').value;
+
+  if (inicio >= fin) {
+    alert("Hora inválida");
+    return;
+  }
+
+  fetch("{% url 'dentistas:api_guardar_agenda' %}", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "X-CSRFToken": getCookie("csrftoken")
+    },
+    body: JSON.stringify({
+      dia_semana: diaActual,
+      hora_inicio: inicio,
+      hora_fin: fin,
+      duracion: duracion
+    })
+  })
+  .then(r => r.json())
+  .then(d => {
+    if (d.ok) location.reload();
+    else alert("Error");
+  });
+
+}
+
+function eliminarDia(num, nombre) {
+  if (!confirm("Eliminar " + nombre + "?")) return;
+
+  fetch("{% url 'dentistas:api_eliminar_agenda' %}", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "X-CSRFToken": getCookie("csrftoken")
+    },
+    body: JSON.stringify({ dia_semana: num })
+  })
+  .then(r => r.json())
+  .then(d => {
+    if (d.ok) location.reload();
+  });
+}
+
+function getCookie(name) {
+  const v = document.cookie.match('(^|;) ?' + name + '=([^;]*)(;|$)');
+  return v ? v[2] : null;
+}
+
+</script>
+
+{% endblock %}

@@ -1,0 +1,127 @@
+{% extends "dentistas/base.html" %}
+{% block title %}Inicio{% endblock %}
+{% block topbar_title %}Bienvenido, {{ dentista.nombre_consultorio }}{% endblock %}
+
+{% block content %}
+
+<!-- STATS -->
+<div class="stats-grid">
+  <div class="stat-card green">
+    <div class="stat-label">Citas hoy</div>
+    <div class="stat-value">{{ reservas_hoy.count }}</div>
+    <div class="stat-sub">{{ hoy|date:"d \d\e F" }}</div>
+  </div>
+  <div class="stat-card amber">
+    <div class="stat-label">Pendientes</div>
+    <div class="stat-value">{{ pendientes }}</div>
+    <div class="stat-sub">Sin confirmar</div>
+  </div>
+  <div class="stat-card blue">
+    <div class="stat-label">Este mes</div>
+    <div class="stat-value">{{ total_mes }}</div>
+    <div class="stat-sub">Reservas totales</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">Tu enlace</div>
+    <div style="font-size:12px;color:#059669;font-family:'DM Mono',monospace;margin-top:4px;word-break:break-all">
+      /{{ dentista.slug }}/
+    </div>
+    <div class="stat-sub" style="margin-top:6px">
+      <a href="/{{ dentista.slug }}/" target="_blank" style="color:#059669;text-decoration:underline">Abrir →</a>
+    </div>
+  </div>
+</div>
+
+<!-- CITAS DE HOY -->
+<div class="card">
+  <div class="card-header">
+    <div class="card-title">Citas de hoy — {{ hoy|date:"l d \d\e F" }}</div>
+    <a href="{% url 'dentistas:reservas' %}" class="btn btn-secondary btn-sm">Ver todas</a>
+  </div>
+  <div class="card-body" style="padding:0">
+    {% if reservas_hoy %}
+    <table class="tabla">
+      <thead>
+        <tr>
+          <th>Hora</th>
+          <th>Paciente</th>
+          <th>Email</th>
+          <th>Estado</th>
+          <th>Acción</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in reservas_hoy %}
+        <tr>
+          <td><strong>{{ r.hora|time:"H:i" }}</strong></td>
+          <td>{{ r.paciente.nombre }}</td>
+          <td style="color:#6b7280">{{ r.paciente.email }}</td>
+          <td><span class="badge {{ r.estado }}">{{ r.get_estado_display }}</span></td>
+          <td>
+            {% if r.estado == 'pendiente' %}
+            <button class="btn btn-success btn-sm"
+                    onclick="cambiarEstado({{ r.id }}, 'confirmada', this)">Confirmar</button>
+            {% elif r.estado == 'confirmada' %}
+            <button class="btn btn-secondary btn-sm"
+                    onclick="cambiarEstado({{ r.id }}, 'completada', this)">Completar</button>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="empty">
+      <div class="empty-icon">🗓️</div>
+      <div class="empty-text">No hay citas programadas para hoy.</div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<!-- CITAS DE MAÑANA -->
+{% if reservas_manana %}
+<div class="card">
+  <div class="card-header">
+    <div class="card-title">Mañana — {{ manana|date:"l d \d\e F" }}</div>
+  </div>
+  <div class="card-body" style="padding:0">
+    <table class="tabla">
+      <thead>
+        <tr><th>Hora</th><th>Paciente</th><th>Estado</th></tr>
+      </thead>
+      <tbody>
+        {% for r in reservas_manana %}
+        <tr>
+          <td><strong>{{ r.hora|time:"H:i" }}</strong></td>
+          <td>{{ r.paciente.nombre }}</td>
+          <td><span class="badge {{ r.estado }}">{{ r.get_estado_display }}</span></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function cambiarEstado(id, estado, btn) {
+  btn.disabled = true;
+  btn.textContent = '…';
+  fetch('{% url "dentistas:api_cambiar_estado" %}', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json','X-CSRFToken': getCookie('csrftoken')},
+    body: JSON.stringify({id, estado})
+  })
+  .then(r => r.json())
+  .then(d => { if(d.ok) location.reload(); else { btn.disabled=false; btn.textContent='Error'; }});
+}
+function getCookie(name) {
+  const v = document.cookie.match('(^|;) ?' + name + '=([^;]*)(;|$)');
+  return v ? v[2] : null;
+}
+</script>
+{% endblock %}
