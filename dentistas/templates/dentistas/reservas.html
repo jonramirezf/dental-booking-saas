@@ -1,0 +1,121 @@
+{% extends "dentistas/base.html" %}
+{% block title %}Reservas{% endblock %}
+{% block topbar_title %}Mis Reservas{% endblock %}
+
+{% block content %}
+
+<!-- BARRA DE BÚSQUEDA Y FILTROS -->
+<div style="display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap;margin-bottom:20px">
+  <form method="get" style="display:flex;gap:8px;flex:1;min-width:220px">
+    <input name="q" value="{{ busqueda }}" class="form-control"
+           placeholder="Buscar por nombre del paciente…" style="max-width:300px">
+    <input type="hidden" name="estado" value="{{ filtro }}">
+    <button type="submit" class="btn btn-secondary">Buscar</button>
+  </form>
+
+  <div class="filtros" style="margin-bottom:0">
+    <a href="?estado=activas"   class="filtro-btn {% if filtro == 'activas' %}active{% endif %}">Activas</a>
+    <a href="?estado=pasadas"   class="filtro-btn {% if filtro == 'pasadas' %}active{% endif %}">Pasadas</a>
+    <a href="?estado=canceladas" class="filtro-btn {% if filtro == 'canceladas' %}active{% endif %}">Canceladas</a>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <div class="card-title">
+      {{ reservas.count }} reserva{{ reservas.count|pluralize:"s" }}
+      {% if busqueda %} — buscando "{{ busqueda }}"{% endif %}
+    </div>
+  </div>
+
+  {% if reservas %}
+  <div style="overflow-x:auto">
+    <table class="tabla">
+      <thead>
+        <tr>
+          <th>Fecha</th>
+          <th>Hora</th>
+          <th>Paciente</th>
+          <th>Email</th>
+          <th>Teléfono</th>
+          <th>Estado</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in reservas %}
+        <tr id="fila-{{ r.id }}">
+          <td>{{ r.fecha|date:"d/m/Y" }}</td>
+          <td><strong>{{ r.hora|time:"H:i" }}</strong></td>
+          <td>{{ r.paciente.nombre }}</td>
+          <td style="color:#6b7280;font-size:12px">{{ r.paciente.email }}</td>
+          <td style="color:#6b7280;font-size:12px">{{ r.paciente.telefono|default:"—" }}</td>
+          <td>
+            <span class="badge {{ r.estado }}" id="badge-{{ r.id }}">
+              {{ r.get_estado_display }}
+            </span>
+          </td>
+          <td>
+            <div style="display:flex;gap:4px">
+              {% if r.estado == 'pendiente' %}
+                <button class="btn btn-success btn-sm"
+                        onclick="cambiarEstado({{ r.id }}, 'confirmada')">✓</button>
+                <button class="btn btn-danger btn-sm"
+                        onclick="cambiarEstado({{ r.id }}, 'cancelada')">✕</button>
+              {% elif r.estado == 'confirmada' %}
+                <button class="btn btn-secondary btn-sm"
+                        onclick="cambiarEstado({{ r.id }}, 'completada')">Completar</button>
+                <button class="btn btn-danger btn-sm"
+                        onclick="cambiarEstado({{ r.id }}, 'cancelada')">✕</button>
+              {% else %}
+                <span style="font-size:12px;color:#9ca3af">—</span>
+              {% endif %}
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty">
+    <div class="empty-icon">📭</div>
+    <div class="empty-text">No hay reservas para mostrar.</div>
+  </div>
+  {% endif %}
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const ESTADOS_LABEL = {
+  pendiente:'Pendiente', confirmada:'Confirmada',
+  cancelada:'Cancelada', completada:'Completada'
+};
+
+function cambiarEstado(id, estado) {
+  const badge = document.getElementById('badge-' + id);
+  fetch('{% url "dentistas:api_cambiar_estado" %}', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json','X-CSRFToken':getCookie('csrftoken')},
+    body: JSON.stringify({id, estado})
+  })
+  .then(r => r.json())
+  .then(d => {
+    if (d.ok) {
+      badge.className = 'badge ' + estado;
+      badge.textContent = ESTADOS_LABEL[estado];
+      const fila = document.getElementById('fila-' + id);
+      fila.style.opacity = '.5';
+      setTimeout(() => location.reload(), 600);
+    }
+  });
+}
+
+function getCookie(name) {
+  const v = document.cookie.match('(^|;) ?' + name + '=([^;]*)(;|$)');
+  return v ? v[2] : null;
+}
+</script>
+{% endblock %}
