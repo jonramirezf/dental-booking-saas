@@ -1,3 +1,5 @@
+document.addEventListener("DOMContentLoaded", () => {
+
 let fechaSeleccionada = null;
 let horaSeleccionada = null;
 
@@ -5,23 +7,28 @@ const hoy = new Date();
 const mes = (hoy.getMonth() + 1).toString().padStart(2, '0');
 const anio = hoy.getFullYear();
 
+console.log("JS cargado", slug);
+
+// Cargar días
 fetch(`/api/${slug}/dias/`)
 .then(res => res.json())
 .then(data => {
+
+    console.log("Dias:", data);
+
     const diasDiv = document.getElementById('dias');
-    diasDiv.innerHTML = '';
+
+    if (!diasDiv) {
+        console.error("No existe #dias");
+        return;
+    }
 
     Object.entries(data.dias).forEach(([dia, estado]) => {
 
-        // mostramos todos menos pasado
-        if (estado !== 'pasado') {
+        if (estado === 'disponible') {
 
             const btn = document.createElement('button');
             btn.innerText = dia;
-
-            if (estado !== 'disponible') {
-                btn.style.opacity = "0.4";
-            }
 
             btn.onclick = () => {
 
@@ -68,7 +75,12 @@ function cargarHorarios() {
     });
 }
 
-function reservar() {
+window.reservar = function() {
+
+    if (!fechaSeleccionada || !horaSeleccionada) {
+        alert("Selecciona fecha y hora");
+        return;
+    }
 
     const nombre = document.getElementById('nombre').value;
     const email = document.getElementById('email').value;
@@ -85,6 +97,12 @@ function reservar() {
     })
     .then(res => res.json())
     .then(data => {
-        alert(data.ok ? "Reserva creada" : "Error");
+        if (data.ok) {
+            alert("Reserva creada ✅");
+        } else {
+            alert(data.error || "Error ❌");
+        }
     });
-}
+};
+
+});
