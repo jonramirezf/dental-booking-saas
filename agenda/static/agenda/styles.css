@@ -1,431 +1,529 @@
-/* ============================================================
-   ARCHIVO 9a de 9: agenda/static/agenda/styles.css
-   UBICACIÓN: agenda/static/agenda/styles.css
-   ACCIÓN: REEMPLAZAR el archivo completo
-   MEJORAS:
-     - Diseño profesional tipo Calendly
-     - Mobile-first (funciona bien en celular)
-     - Estados visuales claros: disponible/lleno/sin_horario
-     - Perfil del dentista con avatar
-     - Paso a paso visual (wizard)
-     - Confirmación con animación de check
-   ============================================================ */
+/* =====================================================
+   styles.css  —  Dental SaaS Booking UI
+   Igual al prototipo: perfil + stepper + calendario
+   ===================================================== */
 
-*, *::before, *::after {
-    box-sizing: border-box;
-}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    background: #f0f4f8;
-    margin: 0;
-    padding: 16px;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: #f0f2f5;
     min-height: 100vh;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 24px 16px 48px;
 }
 
-.container {
+/* ── SHELL ── */
+.shell {
+    width: 100%;
     max-width: 480px;
-    margin: 0 auto;
-    background: white;
+    background: #fff;
     border-radius: 16px;
-    box-shadow: 0 4px 24px rgba(0,0,0,0.08);
     overflow: hidden;
+    box-shadow: 0 2px 24px rgba(0,0,0,0.09);
 }
 
-/* --- PERFIL DENTISTA --- */
-.perfil-header {
+/* ── PROFILE HEADER ── */
+.profile-header {
     display: flex;
     align-items: center;
-    gap: 16px;
-    padding: 24px 24px 16px;
+    gap: 14px;
+    padding: 22px 24px 18px;
     border-bottom: 1px solid #f0f0f0;
 }
 
-.foto-dentista {
-    width: 56px;
-    height: 56px;
+.avatar {
+    width: 52px;
+    height: 52px;
     border-radius: 50%;
-    object-fit: cover;
-    flex-shrink: 0;
-}
-
-.avatar-iniciales {
-    width: 56px;
-    height: 56px;
-    border-radius: 50%;
-    background: var(--color-marca, #0F6E56);
-    color: white;
+    background: var(--brand-light, #d1fae5);
+    border: 2px solid var(--brand, #0d9e75);
+    color: var(--brand, #0d9e75);
+    font-size: 16px;
+    font-weight: 600;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 18px;
-    font-weight: 600;
     flex-shrink: 0;
+    letter-spacing: 0.5px;
 }
 
-.perfil-header h1 {
-    font-size: 18px;
+.profile-info h1 {
+    font-size: 17px;
     font-weight: 600;
-    color: #1a1a2e;
-    margin: 0 0 4px;
+    color: #111827;
+    line-height: 1.3;
 }
 
-.descripcion {
+.profile-sub {
     font-size: 13px;
-    color: #64748b;
-    margin: 0 0 4px;
-    line-height: 1.4;
+    color: #6b7280;
+    margin-top: 2px;
 }
 
-.direccion {
+.badge-online {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11px;
+    font-weight: 500;
+    color: #059669;
+    background: #d1fae5;
+    border-radius: 20px;
+    padding: 3px 10px;
+    margin-top: 6px;
+}
+
+.badge-online::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #10b981;
+}
+
+/* ── STEPPER ── */
+.stepper {
+    display: flex;
+    align-items: center;
+    padding: 16px 24px 0;
+    gap: 0;
+}
+
+.step {
+    display: flex;
+    align-items: center;
+    gap: 6px;
     font-size: 12px;
-    color: #94a3b8;
-    margin: 0;
+    color: #9ca3af;
+    font-weight: 500;
 }
 
-/* --- PASOS --- */
-#paso-dias,
-#paso-horarios,
-#paso-datos,
-#paso-confirmacion {
+.step.active { color: var(--brand, #0d9e75); }
+.step.done   { color: #10b981; }
+
+.step-circle {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    border: 1.5px solid #d1d5db;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 600;
+    color: #9ca3af;
+    background: #fff;
+    transition: all 0.2s;
+}
+
+.step.active .step-circle {
+    background: var(--brand, #0d9e75);
+    border-color: var(--brand, #0d9e75);
+    color: #fff;
+}
+
+.step.done .step-circle {
+    background: #10b981;
+    border-color: #10b981;
+    color: #fff;
+}
+
+.step-line {
+    flex: 1;
+    height: 1px;
+    background: #e5e7eb;
+    margin: 0 8px;
+}
+
+/* ── PASOS ── */
+.paso {
     padding: 20px 24px 24px;
 }
 
-h2 {
-    font-size: 15px;
+.paso.hidden { display: none; }
+
+.paso-label {
+    font-size: 11px;
     font-weight: 600;
-    color: #1a1a2e;
-    margin: 0 0 16px;
+    color: #9ca3af;
+    letter-spacing: 0.07em;
+    margin-bottom: 16px;
 }
 
-/* --- NAVEGACIÓN MES --- */
-.mes-nav {
+/* ── NAVEGACIÓN CALENDARIO ── */
+.cal-nav {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 12px;
+    margin-bottom: 16px;
 }
 
-.mes-nav span {
-    font-size: 15px;
+.cal-nav-title {
+    font-size: 16px;
     font-weight: 600;
-    color: #1a1a2e;
+    color: #111827;
 }
 
-.btn-mes {
-    width: 32px;
-    height: 32px;
-    border: 1px solid #e2e8f0;
+.cal-nav-btn {
+    width: 34px;
+    height: 34px;
+    border: 1px solid #e5e7eb;
     border-radius: 8px;
-    background: white;
+    background: #fff;
+    color: #6b7280;
+    font-size: 15px;
     cursor: pointer;
-    font-size: 14px;
-    color: #64748b;
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 0;
     transition: all 0.15s;
 }
 
-.btn-mes:hover {
-    background: #f8fafc;
-    border-color: #cbd5e1;
+.cal-nav-btn:hover {
+    background: #f9fafb;
+    border-color: #d1d5db;
+    color: #374151;
 }
 
-/* --- LEYENDA --- */
+/* ── DÍAS DE SEMANA ── */
+.cal-dow-row {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    margin-bottom: 6px;
+}
+
+.cal-dow-row span {
+    text-align: center;
+    font-size: 11px;
+    font-weight: 600;
+    color: #9ca3af;
+    padding: 4px 0;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+/* ── GRILLA DÍAS ── */
+.cal-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 3px;
+    margin-bottom: 16px;
+}
+
+.cal-loading {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 24px 0;
+    color: #9ca3af;
+    font-size: 14px;
+}
+
+.cal-day {
+    aspect-ratio: 1;
+    border-radius: 8px;
+    border: none;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: default;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.12s;
+    position: relative;
+    background: transparent;
+    color: #d1d5db;
+}
+
+/* vacío */
+.cal-day.empty { background: transparent; }
+
+/* pasado */
+.cal-day.pasado { color: #e5e7eb; }
+
+/* sin horario */
+.cal-day.sin_horario { color: #d1d5db; background: #f9fafb; }
+
+/* bloqueado */
+.cal-day.bloqueado { color: #fbbf24; background: #fffbeb; }
+
+/* lleno */
+.cal-day.lleno {
+    color: #9ca3af;
+    background: #f3f4f6;
+    text-decoration: line-through;
+}
+
+/* disponible */
+.cal-day.disponible {
+    background: var(--brand-light, #d1fae5);
+    color: #065f46;
+    cursor: pointer;
+    font-weight: 600;
+    border: 1px solid var(--brand-mid, #a7f3d0);
+}
+
+.cal-day.disponible:hover {
+    background: var(--brand, #0d9e75);
+    color: #fff;
+    border-color: var(--brand, #0d9e75);
+    transform: scale(1.06);
+}
+
+.cal-day.disponible.selected {
+    background: var(--brand, #0d9e75) !important;
+    color: #fff !important;
+    border-color: var(--brand, #0d9e75) !important;
+    transform: scale(1.06);
+}
+
+/* punto "hoy" */
+.cal-day.hoy::after {
+    content: '';
+    position: absolute;
+    bottom: 4px;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: var(--brand, #0d9e75);
+}
+.cal-day.disponible.selected.hoy::after { background: rgba(255,255,255,0.8); }
+
+/* ── LEYENDA ── */
 .leyenda {
     display: flex;
-    gap: 12px;
-    margin-bottom: 12px;
+    gap: 16px;
     flex-wrap: wrap;
 }
 
-.leyenda-item {
-    font-size: 11px;
-    color: #64748b;
+.ley-item {
     display: flex;
     align-items: center;
     gap: 5px;
+    font-size: 11px;
+    color: #6b7280;
 }
 
-.leyenda-item::before {
-    content: '';
+.ley-dot {
     width: 10px;
     height: 10px;
     border-radius: 3px;
-    display: inline-block;
 }
+.ley-dot.disponible { background: var(--brand-light, #d1fae5); border: 1px solid var(--brand-mid, #6ee7b7); }
+.ley-dot.sin_horario { background: #f3f4f6; border: 1px solid #e5e7eb; }
+.ley-dot.lleno { background: #f3f4f6; border: 1px solid #d1d5db; }
 
-.leyenda-item.disponible::before { background: #d1fae5; border: 1px solid #6ee7b7; }
-.leyenda-item.lleno::before { background: #fee2e2; border: 1px solid #fca5a5; }
-.leyenda-item.sin_horario::before { background: #f1f5f9; border: 1px solid #e2e8f0; }
-
-/* --- GRILLA DE DÍAS --- */
-.dias {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    gap: 4px;
-}
-
-.dia-nombre {
-    text-align: center;
-    font-size: 10px;
+/* ── PASO 2: HORARIOS ── */
+.paso-fecha-label {
+    font-size: 13px;
     font-weight: 600;
-    color: #94a3b8;
-    padding: 4px 0;
+    color: #374151;
     text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 16px;
 }
 
-.dias button {
-    aspect-ratio: 1;
-    border: none;
-    border-radius: 8px;
-    font-size: 13px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.15s;
-    padding: 0;
-    background: #f1f5f9;
-    color: #94a3b8;
-}
-
-.dias button.disponible {
-    background: #d1fae5;
-    color: #065f46;
-    cursor: pointer;
-}
-
-.dias button.disponible:hover {
-    background: #a7f3d0;
-    transform: scale(1.05);
-}
-
-.dias button.disponible.activo {
-    background: var(--color-marca, #0F6E56);
-    color: white;
-    transform: scale(1.05);
-}
-
-.dias button.lleno {
-    background: #fee2e2;
-    color: #ef4444;
-    cursor: not-allowed;
-    text-decoration: line-through;
-    opacity: 0.6;
-}
-
-.dias button.sin_horario {
-    background: #f8fafc;
-    color: #cbd5e1;
-    cursor: not-allowed;
-}
-
-.dias button.pasado {
-    background: transparent;
-    color: #e2e8f0;
-    cursor: not-allowed;
-    opacity: 0.5;
-}
-
-.dias button.bloqueado {
-    background: #fef3c7;
-    color: #d97706;
-    cursor: not-allowed;
-}
-
-.dias button.vacio {
-    background: transparent;
-    cursor: default;
-}
-
-.cargando {
-    text-align: center;
-    color: #94a3b8;
-    font-size: 14px;
-    grid-column: 1 / -1;
-    padding: 20px 0;
-}
-
-/* --- HORARIOS --- */
-.fecha-label {
-    font-size: 13px;
-    color: #64748b;
-    margin: -8px 0 12px;
-    font-weight: 500;
-}
-
-.horarios {
+.time-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 8px;
+    margin-bottom: 20px;
 }
 
-.horarios button {
-    padding: 12px 8px;
-    border: 1.5px solid #e2e8f0;
+.time-btn {
+    padding: 13px 8px;
     border-radius: 10px;
-    background: white;
+    border: 1.5px solid #e5e7eb;
+    background: #fff;
     font-size: 15px;
     font-weight: 500;
-    color: #1a1a2e;
+    color: #111827;
     cursor: pointer;
-    transition: all 0.15s;
     text-align: center;
+    transition: all 0.12s;
+    font-family: inherit;
 }
 
-.horarios button:hover {
-    border-color: var(--color-marca, #0F6E56);
-    background: #f0fdf4;
-    color: var(--color-marca, #0F6E56);
-}
-
-.horarios button.activo {
-    background: var(--color-marca, #0F6E56);
-    border-color: var(--color-marca, #0F6E56);
-    color: white;
-}
-
-.sin-horarios {
-    text-align: center;
-    color: #94a3b8;
-    font-size: 14px;
-    grid-column: 1 / -1;
-    padding: 20px 0;
-}
-
-/* --- FORMULARIO --- */
-.resumen-cita {
-    background: #f0fdf4;
-    border: 1px solid #bbf7d0;
-    border-radius: 10px;
-    padding: 12px 14px;
-    margin-bottom: 16px;
-    font-size: 14px;
+.time-btn:hover {
+    border-color: var(--brand, #0d9e75);
+    background: var(--brand-light, #d1fae5);
     color: #065f46;
-    font-weight: 500;
 }
 
-input {
+.time-btn.selected {
+    background: var(--brand, #0d9e75);
+    border-color: var(--brand, #0d9e75);
+    color: #fff;
+}
+
+.time-empty {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 24px 0;
+    color: #9ca3af;
+    font-size: 14px;
+}
+
+/* ── PASO 3: FORMULARIO ── */
+.reserva-summary {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: var(--brand-light, #d1fae5);
+    border: 1px solid var(--brand-mid, #a7f3d0);
+    border-radius: 12px;
+    padding: 14px 16px;
+    margin-bottom: 20px;
+}
+
+.summary-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 9px;
+    background: var(--brand, #0d9e75);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.summary-datetime {
+    font-size: 15px;
+    font-weight: 600;
+    color: #065f46;
+}
+
+.summary-doc {
+    font-size: 12px;
+    color: #047857;
+    margin-top: 2px;
+}
+
+.field-label {
+    display: block;
+    font-size: 13px;
+    font-weight: 500;
+    color: #374151;
+    margin-bottom: 6px;
+    margin-top: 12px;
+}
+
+.field-input {
     width: 100%;
-    padding: 12px 14px;
-    margin-bottom: 10px;
-    border: 1.5px solid #e2e8f0;
+    padding: 11px 14px;
+    border: 1.5px solid #e5e7eb;
     border-radius: 10px;
     font-size: 15px;
-    color: #1a1a2e;
+    color: #111827;
+    font-family: inherit;
     transition: border-color 0.15s;
     outline: none;
     display: block;
 }
 
-input:focus {
-    border-color: var(--color-marca, #0F6E56);
+.field-input:focus {
+    border-color: var(--brand, #0d9e75);
 }
 
-input.error {
+.field-input.error {
     border-color: #ef4444;
 }
 
-/* --- BOTONES --- */
-.btn-reservar {
-    width: 100%;
-    padding: 14px;
-    margin-top: 6px;
-    background: var(--color-marca, #0F6E56);
-    color: white;
-    border: none;
-    border-radius: 10px;
-    font-size: 16px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: opacity 0.15s, transform 0.1s;
-}
-
-.btn-reservar:hover {
-    opacity: 0.9;
-}
-
-.btn-reservar:active {
-    transform: scale(0.98);
-}
-
-.btn-reservar:disabled {
-    opacity: 0.55;
-    cursor: not-allowed;
-}
-
-.btn-volver {
-    width: 100%;
-    padding: 10px;
-    margin-top: 10px;
-    background: transparent;
-    color: #64748b;
-    border: none;
-    font-size: 14px;
-    cursor: pointer;
-    text-decoration: underline;
-    text-underline-offset: 2px;
-}
-
-.btn-volver:hover {
-    color: #1a1a2e;
-}
-
-/* --- ERRORES --- */
-.error-msg {
+.field-error {
     color: #ef4444;
     font-size: 13px;
     margin-top: 8px;
+    padding: 8px 12px;
+    background: #fef2f2;
+    border-radius: 8px;
+    border: 1px solid #fecaca;
+}
+
+.field-error.hidden { display: none; }
+
+/* ── BOTONES ── */
+.btn-primary {
+    width: 100%;
+    padding: 14px;
+    margin-top: 16px;
+    background: var(--brand, #0d9e75);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+    transition: opacity 0.15s, transform 0.1s;
+}
+
+.btn-primary:hover  { opacity: 0.9; }
+.btn-primary:active { transform: scale(0.98); }
+.btn-primary:disabled { opacity: 0.55; cursor: not-allowed; }
+
+.btn-back {
+    display: block;
+    width: 100%;
+    margin-top: 12px;
+    padding: 8px;
+    background: transparent;
+    border: none;
+    color: #6b7280;
+    font-size: 13px;
+    cursor: pointer;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    font-family: inherit;
     text-align: center;
 }
 
-/* --- CONFIRMACIÓN --- */
-.confirmacion-ok {
+.btn-back:hover { color: #374151; }
+
+/* ── PASO 4: CONFIRMACIÓN ── */
+.confirm-card {
     text-align: center;
-    padding: 16px 0;
+    padding: 12px 0 4px;
 }
 
-.check-icon {
+.confirm-check {
     width: 64px;
     height: 64px;
     border-radius: 50%;
     background: #d1fae5;
     color: #059669;
     font-size: 28px;
+    font-weight: 700;
     display: flex;
     align-items: center;
     justify-content: center;
-    margin: 0 auto 16px;
-    font-weight: 700;
+    margin: 0 auto 18px;
 }
 
-.confirmacion-ok h2 {
+.confirm-title {
     font-size: 20px;
+    font-weight: 600;
     color: #065f46;
-    margin-bottom: 8px;
-    text-align: center;
+    margin-bottom: 10px;
 }
 
-#confirmacion-texto {
+.confirm-detail {
     font-size: 15px;
-    color: #1a1a2e;
-    font-weight: 600;
+    color: #111827;
+    font-weight: 500;
     margin-bottom: 6px;
 }
 
-.confirmacion-sub {
+.confirm-sub {
     font-size: 13px;
-    color: #64748b;
-    margin-bottom: 20px;
+    color: #6b7280;
+    margin-bottom: 22px;
+    line-height: 1.5;
 }
 
-/* --- RESPONSIVE MÓVIL --- */
+/* ── MOBILE ── */
 @media (max-width: 480px) {
-    body { padding: 0; }
-    .container {
-        border-radius: 0;
-        box-shadow: none;
-        min-height: 100vh;
-    }
+    body { padding: 0; background: #fff; }
+    .shell { border-radius: 0; box-shadow: none; min-height: 100vh; }
 }
