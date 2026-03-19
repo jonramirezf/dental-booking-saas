@@ -1,16 +1,20 @@
-<!DOCTYPE html>
 {% load static %}
+<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <title>Reserva</title>
 
-    <link rel="stylesheet" href="{% static 'agenda/styles.css' %}">
+    <link rel="stylesheet" href="{% static 'agenda/style.css' %}">
 </head>
-
 <body>
 
+<script>
+const slug = "{{ slug }}";
+</script>
+
 <div class="container">
+
     <h1>{{ dentista.nombre_consultorio }}</h1>
 
     <h2>Selecciona un día</h2>
@@ -24,15 +28,10 @@
     <input id="email" placeholder="Tu email">
 
     <button class="btn-reservar" onclick="reservar()">Reservar</button>
-</div>
 
-<!-- JS SIEMPRE ABAJO -->
-<script>
-const slug = "{{ slug }}";
-</script>
+</div>
 
 <script src="{% static 'agenda/app.js' %}"></script>
 
 </body>
 </html>
-

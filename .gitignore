@@ -1,15 +1,28 @@
 # Django
+*.pyc
+__pycache__/
 db.sqlite3
 *.sqlite3
-__pycache__/
-*.pyc
-
-# Entorno
 .env
+.env.*
+local_settings.py
+
+# Media / Static generado
+/media/
+/staticfiles/
+/static/
+
+# Entorno virtual
 venv/
+env/
+.venv/
+*.egg-info/
 
 # IDE
 .vscode/
+.idea/
+*.swp
+*.swo
 
 # OS
 .DS_Store

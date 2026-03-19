@@ -1,88 +1,431 @@
+/* ============================================================
+   ARCHIVO 9a de 9: agenda/static/agenda/styles.css
+   UBICACIÓN: agenda/static/agenda/styles.css
+   ACCIÓN: REEMPLAZAR el archivo completo
+   MEJORAS:
+     - Diseño profesional tipo Calendly
+     - Mobile-first (funciona bien en celular)
+     - Estados visuales claros: disponible/lleno/sin_horario
+     - Perfil del dentista con avatar
+     - Paso a paso visual (wizard)
+     - Confirmación con animación de check
+   ============================================================ */
+
+*, *::before, *::after {
+    box-sizing: border-box;
+}
+
 body {
-    font-family: Arial, sans-serif;
-    background: #f5f7fb;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #f0f4f8;
     margin: 0;
-    padding: 0;
+    padding: 16px;
+    min-height: 100vh;
 }
 
 .container {
-    max-width: 500px;
-    margin: 50px auto;
+    max-width: 480px;
+    margin: 0 auto;
     background: white;
-    padding: 25px;
-    border-radius: 12px;
-    box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+    border-radius: 16px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+    overflow: hidden;
 }
 
-h1 {
-    text-align: center;
+/* --- PERFIL DENTISTA --- */
+.perfil-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 24px 24px 16px;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.foto-dentista {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+.avatar-iniciales {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: var(--color-marca, #0F6E56);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    font-weight: 600;
+    flex-shrink: 0;
+}
+
+.perfil-header h1 {
+    font-size: 18px;
+    font-weight: 600;
+    color: #1a1a2e;
+    margin: 0 0 4px;
+}
+
+.descripcion {
+    font-size: 13px;
+    color: #64748b;
+    margin: 0 0 4px;
+    line-height: 1.4;
+}
+
+.direccion {
+    font-size: 12px;
+    color: #94a3b8;
+    margin: 0;
+}
+
+/* --- PASOS --- */
+#paso-dias,
+#paso-horarios,
+#paso-datos,
+#paso-confirmacion {
+    padding: 20px 24px 24px;
 }
 
 h2 {
-    margin-top: 20px;
+    font-size: 15px;
+    font-weight: 600;
+    color: #1a1a2e;
+    margin: 0 0 16px;
 }
 
-/* DÍAS */
-.dias {
+/* --- NAVEGACIÓN MES --- */
+.mes-nav {
     display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+}
+
+.mes-nav span {
+    font-size: 15px;
+    font-weight: 600;
+    color: #1a1a2e;
+}
+
+.btn-mes {
+    width: 32px;
+    height: 32px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    background: white;
+    cursor: pointer;
+    font-size: 14px;
+    color: #64748b;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    transition: all 0.15s;
+}
+
+.btn-mes:hover {
+    background: #f8fafc;
+    border-color: #cbd5e1;
+}
+
+/* --- LEYENDA --- */
+.leyenda {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 12px;
     flex-wrap: wrap;
+}
+
+.leyenda-item {
+    font-size: 11px;
+    color: #64748b;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.leyenda-item::before {
+    content: '';
+    width: 10px;
+    height: 10px;
+    border-radius: 3px;
+    display: inline-block;
+}
+
+.leyenda-item.disponible::before { background: #d1fae5; border: 1px solid #6ee7b7; }
+.leyenda-item.lleno::before { background: #fee2e2; border: 1px solid #fca5a5; }
+.leyenda-item.sin_horario::before { background: #f1f5f9; border: 1px solid #e2e8f0; }
+
+/* --- GRILLA DE DÍAS --- */
+.dias {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+}
+
+.dia-nombre {
+    text-align: center;
+    font-size: 10px;
+    font-weight: 600;
+    color: #94a3b8;
+    padding: 4px 0;
+    text-transform: uppercase;
 }
 
 .dias button {
-    padding: 10px 15px;
-    margin: 5px;
+    aspect-ratio: 1;
     border: none;
     border-radius: 8px;
-    background: #e0e7ff;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s;
+    padding: 0;
+    background: #f1f5f9;
+    color: #94a3b8;
+}
+
+.dias button.disponible {
+    background: #d1fae5;
+    color: #065f46;
     cursor: pointer;
 }
 
-.dias button.activo {
-    background: #6366f1;
-    color: white;
+.dias button.disponible:hover {
+    background: #a7f3d0;
+    transform: scale(1.05);
 }
 
-/* HORARIOS */
+.dias button.disponible.activo {
+    background: var(--color-marca, #0F6E56);
+    color: white;
+    transform: scale(1.05);
+}
+
+.dias button.lleno {
+    background: #fee2e2;
+    color: #ef4444;
+    cursor: not-allowed;
+    text-decoration: line-through;
+    opacity: 0.6;
+}
+
+.dias button.sin_horario {
+    background: #f8fafc;
+    color: #cbd5e1;
+    cursor: not-allowed;
+}
+
+.dias button.pasado {
+    background: transparent;
+    color: #e2e8f0;
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+.dias button.bloqueado {
+    background: #fef3c7;
+    color: #d97706;
+    cursor: not-allowed;
+}
+
+.dias button.vacio {
+    background: transparent;
+    cursor: default;
+}
+
+.cargando {
+    text-align: center;
+    color: #94a3b8;
+    font-size: 14px;
+    grid-column: 1 / -1;
+    padding: 20px 0;
+}
+
+/* --- HORARIOS --- */
+.fecha-label {
+    font-size: 13px;
+    color: #64748b;
+    margin: -8px 0 12px;
+    font-weight: 500;
+}
+
 .horarios {
-    display: flex;
-    flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
 }
 
 .horarios button {
-    padding: 8px 12px;
-    margin: 5px;
-    border: none;
-    border-radius: 6px;
-    background: #d1fae5;
+    padding: 12px 8px;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 10px;
+    background: white;
+    font-size: 15px;
+    font-weight: 500;
+    color: #1a1a2e;
     cursor: pointer;
+    transition: all 0.15s;
+    text-align: center;
+}
+
+.horarios button:hover {
+    border-color: var(--color-marca, #0F6E56);
+    background: #f0fdf4;
+    color: var(--color-marca, #0F6E56);
 }
 
 .horarios button.activo {
-    background: #10b981;
+    background: var(--color-marca, #0F6E56);
+    border-color: var(--color-marca, #0F6E56);
     color: white;
 }
 
-/* INPUTS */
+.sin-horarios {
+    text-align: center;
+    color: #94a3b8;
+    font-size: 14px;
+    grid-column: 1 / -1;
+    padding: 20px 0;
+}
+
+/* --- FORMULARIO --- */
+.resumen-cita {
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    border-radius: 10px;
+    padding: 12px 14px;
+    margin-bottom: 16px;
+    font-size: 14px;
+    color: #065f46;
+    font-weight: 500;
+}
+
 input {
     width: 100%;
-    padding: 10px;
-    margin-top: 10px;
-    border-radius: 6px;
-    border: 1px solid #ccc;
+    padding: 12px 14px;
+    margin-bottom: 10px;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 10px;
+    font-size: 15px;
+    color: #1a1a2e;
+    transition: border-color 0.15s;
+    outline: none;
+    display: block;
 }
 
-/* BOTÓN */
+input:focus {
+    border-color: var(--color-marca, #0F6E56);
+}
+
+input.error {
+    border-color: #ef4444;
+}
+
+/* --- BOTONES --- */
 .btn-reservar {
     width: 100%;
-    padding: 12px;
-    margin-top: 15px;
-    background: #6366f1;
+    padding: 14px;
+    margin-top: 6px;
+    background: var(--color-marca, #0F6E56);
     color: white;
     border: none;
-    border-radius: 8px;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: 600;
     cursor: pointer;
+    transition: opacity 0.15s, transform 0.1s;
 }
 
 .btn-reservar:hover {
-    background: #4f46e5;
+    opacity: 0.9;
+}
+
+.btn-reservar:active {
+    transform: scale(0.98);
+}
+
+.btn-reservar:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+.btn-volver {
+    width: 100%;
+    padding: 10px;
+    margin-top: 10px;
+    background: transparent;
+    color: #64748b;
+    border: none;
+    font-size: 14px;
+    cursor: pointer;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+
+.btn-volver:hover {
+    color: #1a1a2e;
+}
+
+/* --- ERRORES --- */
+.error-msg {
+    color: #ef4444;
+    font-size: 13px;
+    margin-top: 8px;
+    text-align: center;
+}
+
+/* --- CONFIRMACIÓN --- */
+.confirmacion-ok {
+    text-align: center;
+    padding: 16px 0;
+}
+
+.check-icon {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: #d1fae5;
+    color: #059669;
+    font-size: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 16px;
+    font-weight: 700;
+}
+
+.confirmacion-ok h2 {
+    font-size: 20px;
+    color: #065f46;
+    margin-bottom: 8px;
+    text-align: center;
+}
+
+#confirmacion-texto {
+    font-size: 15px;
+    color: #1a1a2e;
+    font-weight: 600;
+    margin-bottom: 6px;
+}
+
+.confirmacion-sub {
+    font-size: 13px;
+    color: #64748b;
+    margin-bottom: 20px;
+}
+
+/* --- RESPONSIVE MÓVIL --- */
+@media (max-width: 480px) {
+    body { padding: 0; }
+    .container {
+        border-radius: 0;
+        box-shadow: none;
+        min-height: 100vh;
+    }
 }
