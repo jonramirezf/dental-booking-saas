@@ -1,28 +1,23 @@
 # ============================================================
-# ARCHIVO 2/7 — dentistas/views.py
-# UBICACIÓN:   dentistas/views.py   (reemplaza el existente)
+# ARCHIVO 8/8 — dentistas/views.py
+# UBICACIÓN: dentistas/views.py   REEMPLAZAR COMPLETO
+# NUEVO: perfil_view incluye tema_fondo + imagen_fondo
 # ============================================================
 import json
 import re
 from datetime import date, timedelta
 
-from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
-from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
-from django.views.decorators.csrf import csrf_exempt
 
 from agenda.models import ConfiguracionAgenda, Reserva
-from .models import PerfilDentista
+from .models import PerfilDentista, TEMAS_FONDO
 
-
-# ── helpers ──────────────────────────────────────────────────
 
 def get_dentista(request):
-    """Retorna el PerfilDentista del usuario logueado o None."""
     try:
         return request.user.perfildentista
     except PerfilDentista.DoesNotExist:
@@ -30,7 +25,6 @@ def get_dentista(request):
 
 
 def dentista_required(view_func):
-    """Decorator: requiere login + tener PerfilDentista."""
     def wrapper(request, *args, **kwargs):
         if not request.user.is_authenticated:
             return redirect('dentistas:login')
@@ -46,7 +40,6 @@ def dentista_required(view_func):
 def login_view(request):
     if request.user.is_authenticated and get_dentista(request):
         return redirect('dentistas:dashboard')
-
     error = None
     if request.method == 'POST':
         email    = request.POST.get('email', '').strip().lower()
@@ -56,12 +49,10 @@ def login_view(request):
             user = authenticate(request, username=user.username, password=password)
         except User.DoesNotExist:
             user = None
-
         if user:
             login(request, user)
             return redirect('dentistas:dashboard')
         error = 'Email o contraseña incorrectos.'
-
     return render(request, 'dentistas/login.html', {'error': error})
 
 
@@ -73,51 +64,37 @@ def logout_view(request):
 def registro_view(request):
     if request.user.is_authenticated:
         return redirect('dentistas:dashboard')
-
     errores = {}
     datos   = {}
-
     if request.method == 'POST':
-        nombre     = request.POST.get('nombre', '').strip()
-        email      = request.POST.get('email', '').strip().lower()
-        password   = request.POST.get('password', '')
-        password2  = request.POST.get('password2', '')
-        consultorio= request.POST.get('consultorio', '').strip()
-        slug       = request.POST.get('slug', '').strip().lower()
-        datos      = {'nombre': nombre, 'email': email,
-                      'consultorio': consultorio, 'slug': slug}
+        nombre      = request.POST.get('nombre', '').strip()
+        email       = request.POST.get('email', '').strip().lower()
+        password    = request.POST.get('password', '')
+        password2   = request.POST.get('password2', '')
+        consultorio = request.POST.get('consultorio', '').strip()
+        slug        = request.POST.get('slug', '').strip().lower()
+        datos       = {'nombre': nombre, 'email': email,
+                       'consultorio': consultorio, 'slug': slug}
 
-        # Validaciones
-        if not nombre:
-            errores['nombre'] = 'Requerido.'
-        if not email or '@' not in email:
-            errores['email'] = 'Email inválido.'
-        elif User.objects.filter(email=email).exists():
-            errores['email'] = 'Este email ya está registrado.'
-        if len(password) < 8:
-            errores['password'] = 'Mínimo 8 caracteres.'
-        if password != password2:
-            errores['password2'] = 'Las contraseñas no coinciden.'
-        if not consultorio:
-            errores['consultorio'] = 'Requerido.'
-        if not slug:
-            errores['slug'] = 'Requerido.'
+        if not nombre:              errores['nombre'] = 'Requerido.'
+        if not email or '@' not in email: errores['email'] = 'Email inválido.'
+        elif User.objects.filter(email=email).exists(): errores['email'] = 'Email ya registrado.'
+        if len(password) < 8:       errores['password'] = 'Mínimo 8 caracteres.'
+        if password != password2:   errores['password2'] = 'Las contraseñas no coinciden.'
+        if not consultorio:         errores['consultorio'] = 'Requerido.'
+        if not slug:                errores['slug'] = 'Requerido.'
         elif not re.match(r'^[a-z0-9]+(?:-[a-z0-9]+)*$', slug):
             errores['slug'] = 'Solo letras, números y guiones. Ej: dr-perez'
         elif PerfilDentista.objects.filter(slug=slug).exists():
-            errores['slug'] = 'Este slug ya está en uso.'
+            errores['slug'] = 'Slug ya en uso.'
 
         if not errores:
             user = User.objects.create_user(
-                username=slug,
-                email=email,
-                password=password,
-                first_name=nombre,
+                username=slug, email=email,
+                password=password, first_name=nombre,
             )
             PerfilDentista.objects.create(
-                usuario=user,
-                slug=slug,
-                nombre_consultorio=consultorio,
+                usuario=user, slug=slug, nombre_consultorio=consultorio,
             )
             login(request, user)
             return redirect('dentistas:dashboard')
@@ -149,9 +126,7 @@ def dashboard(request):
         estado__in=['pendiente','confirmada','completada']
     ).count()
 
-    pendientes = Reserva.objects.filter(
-        dentista=dentista, estado='pendiente'
-    ).count()
+    pendientes = Reserva.objects.filter(dentista=dentista, estado='pendiente').count()
 
     return render(request, 'dentistas/dashboard.html', {
         'dentista': dentista,
@@ -164,7 +139,7 @@ def dashboard(request):
     })
 
 
-# ── RESERVAS ─────────────────────────────────────────────────
+# ── RESERVAS ────────────────────────────────────────────────
 
 @dentista_required
 def reservas_view(request):
@@ -173,75 +148,72 @@ def reservas_view(request):
     busqueda = request.GET.get('q', '').strip()
 
     qs = Reserva.objects.filter(dentista=dentista).select_related('paciente')
-
     if filtro == 'activas':
         qs = qs.filter(estado__in=['pendiente','confirmada'], fecha__gte=date.today())
     elif filtro == 'pasadas':
         qs = qs.filter(fecha__lt=date.today()).exclude(estado='cancelada')
     elif filtro == 'canceladas':
         qs = qs.filter(estado='cancelada')
-    else:
-        qs = qs.filter(fecha__gte=date.today())
-
     if busqueda:
         qs = qs.filter(paciente__nombre__icontains=busqueda)
 
-    qs = qs.order_by('fecha', 'hora')
-
     return render(request, 'dentistas/reservas.html', {
-        'dentista':  dentista,
-        'reservas':  qs,
-        'filtro':    filtro,
-        'busqueda':  busqueda,
+        'dentista': dentista,
+        'reservas': qs.order_by('fecha', 'hora'),
+        'filtro':   filtro,
+        'busqueda': busqueda,
     })
 
 
-# ── AGENDA / HORARIOS ────────────────────────────────────────
+# ── AGENDA ──────────────────────────────────────────────────
 
 @dentista_required
 def agenda_view(request):
     dentista = get_dentista(request)
     configs  = ConfiguracionAgenda.objects.filter(dentista=dentista).order_by('dia_semana')
-
-    DIAS = [
-        (0,'Lunes'),(1,'Martes'),(2,'Miércoles'),
-        (3,'Jueves'),(4,'Viernes'),(5,'Sábado'),(6,'Domingo'),
-    ]
-    dias_configurados = {c.dia_semana: c for c in configs}
-
+    DIAS     = [(0,'Lunes'),(1,'Martes'),(2,'Miércoles'),
+                (3,'Jueves'),(4,'Viernes'),(5,'Sábado'),(6,'Domingo')]
     return render(request, 'dentistas/agenda.html', {
-        'dentista':         dentista,
-        'configs':          configs,
-        'DIAS':             DIAS,
-        'dias_configurados':dias_configurados,
+        'dentista': dentista,
+        'configs':  configs,
+        'DIAS':     DIAS,
+        'dias_configurados': {c.dia_semana: c for c in configs},
     })
 
 
-# ── PERFIL ───────────────────────────────────────────────────
+# ── PERFIL ──────────────────────────────────────────────────
 
 @dentista_required
 def perfil_view(request):
     dentista = get_dentista(request)
-    error    = None
-    ok       = False
+    ok = False
 
     if request.method == 'POST':
         dentista.nombre_consultorio = request.POST.get('consultorio', dentista.nombre_consultorio).strip()
         dentista.telefono           = request.POST.get('telefono', '').strip()
         dentista.descripcion        = request.POST.get('descripcion', '').strip()
         dentista.direccion          = request.POST.get('direccion', '').strip()
+
         color = request.POST.get('color', dentista.color_principal).strip()
         if re.match(r'^#[0-9A-Fa-f]{6}$', color):
             dentista.color_principal = color
+
+        tema = request.POST.get('tema_fondo', dentista.tema_fondo)
+        if tema in dict(TEMAS_FONDO):
+            dentista.tema_fondo = tema
+
         if 'foto_perfil' in request.FILES:
             dentista.foto_perfil = request.FILES['foto_perfil']
+        if 'imagen_fondo' in request.FILES:
+            dentista.imagen_fondo = request.FILES['imagen_fondo']
+
         dentista.save()
         ok = True
 
     return render(request, 'dentistas/perfil.html', {
-        'dentista': dentista,
-        'ok': ok,
-        'error': error,
+        'dentista':    dentista,
+        'ok':          ok,
+        'TEMAS_FONDO': TEMAS_FONDO,
     })
 
 
@@ -252,7 +224,7 @@ def perfil_view(request):
 def api_guardar_agenda(request):
     dentista = get_dentista(request)
     try:
-        data = json.loads(request.body)
+        data         = json.loads(request.body)
         dia_semana   = int(data['dia_semana'])
         hora_inicio  = data['hora_inicio']
         hora_fin     = data['hora_fin']
@@ -261,20 +233,15 @@ def api_guardar_agenda(request):
         return JsonResponse({'error': 'Datos inválidos'}, status=400)
 
     if hora_inicio >= hora_fin:
-        return JsonResponse({'error': 'La hora de inicio debe ser antes que la de fin'}, status=400)
+        return JsonResponse({'error': 'Inicio debe ser antes que fin'}, status=400)
     if duracion not in [15, 20, 30, 45, 60]:
         return JsonResponse({'error': 'Duración inválida'}, status=400)
 
-    obj, created = ConfiguracionAgenda.objects.update_or_create(
-        dentista=dentista,
-        dia_semana=dia_semana,
-        defaults={
-            'hora_inicio': hora_inicio,
-            'hora_fin': hora_fin,
-            'duracion_cita': duracion,
-        }
+    ConfiguracionAgenda.objects.update_or_create(
+        dentista=dentista, dia_semana=dia_semana,
+        defaults={'hora_inicio': hora_inicio, 'hora_fin': hora_fin, 'duracion_cita': duracion}
     )
-    return JsonResponse({'ok': True, 'created': created})
+    return JsonResponse({'ok': True})
 
 
 @dentista_required
@@ -282,14 +249,12 @@ def api_guardar_agenda(request):
 def api_eliminar_agenda(request):
     dentista = get_dentista(request)
     try:
-        data       = json.loads(request.body)
-        dia_semana = int(data['dia_semana'])
+        data = json.loads(request.body)
+        ConfiguracionAgenda.objects.filter(
+            dentista=dentista, dia_semana=int(data['dia_semana'])
+        ).delete()
     except (KeyError, ValueError, json.JSONDecodeError):
         return JsonResponse({'error': 'Datos inválidos'}, status=400)
-
-    ConfiguracionAgenda.objects.filter(
-        dentista=dentista, dia_semana=dia_semana
-    ).delete()
     return JsonResponse({'ok': True})
 
 
@@ -298,16 +263,16 @@ def api_eliminar_agenda(request):
 def api_cambiar_estado(request):
     dentista = get_dentista(request)
     try:
-        data      = json.loads(request.body)
-        reserva_id= int(data['id'])
-        nuevo     = data['estado']
+        data   = json.loads(request.body)
+        rid    = int(data['id'])
+        nuevo  = data['estado']
     except (KeyError, ValueError, json.JSONDecodeError):
         return JsonResponse({'error': 'Datos inválidos'}, status=400)
 
     if nuevo not in ['pendiente','confirmada','cancelada','completada']:
         return JsonResponse({'error': 'Estado inválido'}, status=400)
 
-    reserva = get_object_or_404(Reserva, pk=reserva_id, dentista=dentista)
+    reserva = get_object_or_404(Reserva, pk=rid, dentista=dentista)
     reserva.estado = nuevo
     reserva.save(update_fields=['estado'])
     return JsonResponse({'ok': True, 'estado': nuevo})
