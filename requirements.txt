@@ -1,0 +1,35 @@
+# ============================================================
+# requirements.txt — raíz del proyecto
+# Instalar: pip install -r requirements.txt
+# ============================================================
+
+# Django core
+Django==5.0.6
+gunicorn==22.0.0
+
+# Base de datos producción (PostgreSQL)
+psycopg2-binary
+dj-database-url==2.2.0
+
+# Variables de entorno
+python-decouple==3.8
+
+# Archivos estáticos en producción (WhiteNoise sirve static sin nginx)
+whitenoise==6.7.0
+
+# Imágenes (campos ImageField)
+Pillow==10.4.0
+
+# Requests (usado por ia/services.py)
+requests==2.32.3
+
+# Seguridad adicional
+django-cors-headers==4.4.0
+
+# Celery + Redis (recordatorios automáticos — opcional pero recomendado)
+# celery==5.4.0
+# redis==5.0.8
+# django-celery-beat==2.6.0
+
+# Para development
+# django-debug-toolbar==4.4.2

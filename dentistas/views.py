@@ -4,6 +4,7 @@
 # NUEVO: perfil_view incluye tema_fondo + imagen_fondo
 # ============================================================
 import json
+import os
 import re
 from datetime import date, timedelta
 
@@ -186,9 +187,11 @@ def agenda_view(request):
 @dentista_required
 def perfil_view(request):
     dentista = get_dentista(request)
-    ok = False
+    ok    = False
+    error = None
 
     if request.method == 'POST':
+        # ── Datos básicos ────────────────────────────────────
         dentista.nombre_consultorio = request.POST.get('consultorio', dentista.nombre_consultorio).strip()
         dentista.telefono           = request.POST.get('telefono', '').strip()
         dentista.descripcion        = request.POST.get('descripcion', '').strip()
@@ -202,17 +205,62 @@ def perfil_view(request):
         if tema in dict(TEMAS_FONDO):
             dentista.tema_fondo = tema
 
-        if 'foto_perfil' in request.FILES:
-            dentista.foto_perfil = request.FILES['foto_perfil']
-        if 'imagen_fondo' in request.FILES:
-            dentista.imagen_fondo = request.FILES['imagen_fondo']
+        # ── Foto de perfil ───────────────────────────────────
+        eliminar_foto = request.POST.get('eliminar_foto_perfil') == '1'
 
-        dentista.save()
-        ok = True
+        if eliminar_foto and dentista.foto_perfil:
+            # Elimina el archivo físico del servidor
+            ruta = dentista.foto_perfil.path
+            if os.path.isfile(ruta):
+                os.remove(ruta)
+            dentista.foto_perfil = None
+
+        elif 'foto_perfil' in request.FILES:
+            archivo = request.FILES['foto_perfil']
+            # Validar tamaño: máximo 5 MB
+            if archivo.size > 5 * 1024 * 1024:
+                error = 'La foto no puede superar los 5 MB.'
+            # Validar tipo: solo imágenes
+            elif not archivo.content_type.startswith('image/'):
+                error = 'El archivo debe ser una imagen (JPG, PNG, WEBP).'
+            else:
+                # Eliminar la foto anterior antes de guardar la nueva
+                if dentista.foto_perfil:
+                    ruta_anterior = dentista.foto_perfil.path
+                    if os.path.isfile(ruta_anterior):
+                        os.remove(ruta_anterior)
+                dentista.foto_perfil = archivo
+
+        # ── Imagen de fondo ──────────────────────────────────
+        eliminar_fondo = request.POST.get('eliminar_imagen_fondo') == '1'
+
+        if eliminar_fondo and dentista.imagen_fondo:
+            ruta = dentista.imagen_fondo.path
+            if os.path.isfile(ruta):
+                os.remove(ruta)
+            dentista.imagen_fondo = None
+
+        elif 'imagen_fondo' in request.FILES:
+            archivo = request.FILES['imagen_fondo']
+            if archivo.size > 10 * 1024 * 1024:
+                error = 'La imagen de fondo no puede superar los 10 MB.'
+            elif not archivo.content_type.startswith('image/'):
+                error = 'El archivo debe ser una imagen.'
+            else:
+                if dentista.imagen_fondo:
+                    ruta_anterior = dentista.imagen_fondo.path
+                    if os.path.isfile(ruta_anterior):
+                        os.remove(ruta_anterior)
+                dentista.imagen_fondo = archivo
+
+        if not error:
+            dentista.save()
+            ok = True
 
     return render(request, 'dentistas/perfil.html', {
         'dentista':    dentista,
         'ok':          ok,
+        'error':       error,
         'TEMAS_FONDO': TEMAS_FONDO,
     })
 

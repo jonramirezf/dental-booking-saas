@@ -1,18 +1,110 @@
 {% extends "dentistas/base.html" %}
+{% load static %}
 {% block title %}Mi Perfil{% endblock %}
 {% block topbar_title %}Mi Perfil{% endblock %}
 
 {% block content %}
-<div style="max-width:600px">
+<div style="max-width:620px">
 
   {% if ok %}
-  <div class="alert alert-success">✓ Perfil actualizado correctamente.</div>
+  <div class="alert alert-success" id="alert-ok">
+    <span style="font-size:15px">✓</span> Perfil actualizado correctamente.
+  </div>
+  {% endif %}
+  {% if error %}
+  <div class="alert alert-error">{{ error }}</div>
   {% endif %}
 
-  <form method="post" enctype="multipart/form-data">
+  <form method="post" enctype="multipart/form-data" id="perfil-form">
     {% csrf_token %}
 
-    <!-- CONSULTORIO -->
+    <!-- ══════════════════════════════════════
+         FOTO DE PERFIL
+    ══════════════════════════════════════ -->
+    <div class="card" style="margin-bottom:16px">
+      <div class="card-header">
+        <div class="card-title">Foto de perfil</div>
+        <span style="font-size:11px;color:#9ca3af">Visible en tu página pública</span>
+      </div>
+      <div class="card-body">
+        <div class="avatar-upload-zone">
+
+          <!-- Avatar actual / preview -->
+          <div class="avatar-wrap" id="avatar-wrap">
+            {% if dentista.foto_perfil %}
+              <img src="{{ dentista.foto_perfil.url }}"
+                   alt="{{ dentista.nombre_consultorio }}"
+                   class="avatar-img-large"
+                   id="avatar-preview">
+              <div class="avatar-overlay" onclick="document.getElementById('id-foto-perfil').click()">
+                <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2">
+                  <path d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
+                  <path d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
+                </svg>
+                <span style="font-size:11px;margin-top:3px">Cambiar</span>
+              </div>
+            {% else %}
+              <div class="avatar-placeholder" id="avatar-placeholder"
+                   onclick="document.getElementById('id-foto-perfil').click()">
+                <div class="avatar-initials" id="avatar-initials">
+                  {{ dentista.nombre_consultorio|slice:":2"|upper }}
+                </div>
+                <div class="avatar-placeholder-hint">
+                  <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path d="M12 4v16m8-8H4"/>
+                  </svg>
+                  <span>Subir foto</span>
+                </div>
+              </div>
+              <img src="" alt="" class="avatar-img-large hidden" id="avatar-preview">
+            {% endif %}
+          </div>
+
+          <!-- Controles -->
+          <div class="avatar-controls">
+            <input type="file" name="foto_perfil" id="id-foto-perfil"
+                   accept="image/jpeg,image/png,image/webp"
+                   style="display:none" onchange="previewFoto(this)">
+            <input type="hidden" name="eliminar_foto_perfil" id="flag-eliminar-foto" value="0">
+
+            <button type="button" class="btn btn-secondary btn-sm"
+                    onclick="document.getElementById('id-foto-perfil').click()">
+              <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
+                <path d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
+              </svg>
+              {% if dentista.foto_perfil %}Cambiar foto{% else %}Subir foto{% endif %}
+            </button>
+
+            {% if dentista.foto_perfil %}
+            <button type="button" class="btn btn-danger btn-sm" id="btn-eliminar-foto"
+                    onclick="confirmarEliminarFoto()">
+              <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+              </svg>
+              Eliminar foto
+            </button>
+            {% endif %}
+
+            <p class="avatar-hint">JPG, PNG o WEBP · Máx. 5 MB · Mínimo 200×200 px recomendado</p>
+
+            <!-- Mensaje de preview -->
+            <div id="preview-msg" class="preview-msg hidden">
+              <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#059669" stroke-width="2">
+                <path d="M5 13l4 4L19 7"/>
+              </svg>
+              <span id="preview-filename"></span>
+              <button type="button" onclick="cancelarFoto()" style="background:none;border:none;color:#9ca3af;font-size:12px;cursor:pointer;margin-left:4px">✕ Cancelar</button>
+            </div>
+          </div>
+
+        </div><!-- /avatar-upload-zone -->
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════
+         DATOS DEL CONSULTORIO
+    ══════════════════════════════════════ -->
     <div class="card" style="margin-bottom:16px">
       <div class="card-header"><div class="card-title">Datos del consultorio</div></div>
       <div class="card-body">
@@ -20,8 +112,10 @@
         <div class="form-group">
           <label class="form-label">Nombre del consultorio</label>
           <input type="text" name="consultorio" class="form-control"
-                 value="{{ dentista.nombre_consultorio }}" required>
+                 value="{{ dentista.nombre_consultorio }}" required
+                 oninput="actualizarIniciales(this.value)">
         </div>
+
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
           <div class="form-group">
             <label class="form-label">Teléfono</label>
@@ -34,27 +128,19 @@
                    value="{{ dentista.direccion }}" placeholder="Av. Principal 123">
           </div>
         </div>
+
         <div class="form-group">
           <label class="form-label">Descripción (visible para pacientes)</label>
           <textarea name="descripcion" class="form-control" rows="2"
-                    placeholder="Odontología general, estética…">{{ dentista.descripcion }}</textarea>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Foto de perfil</label>
-          {% if dentista.foto_perfil %}
-          <div style="margin-bottom:8px;display:flex;align-items:center;gap:10px">
-            <img src="{{ dentista.foto_perfil.url }}" alt="Foto"
-                 style="width:56px;height:56px;border-radius:50%;object-fit:cover;border:2px solid #e5e7eb">
-            <span style="font-size:12px;color:#6b7280">Foto actual</span>
-          </div>
-          {% endif %}
-          <input type="file" name="foto_perfil" accept="image/*" class="form-control">
+                    placeholder="Odontología general, estética dental, implantes…">{{ dentista.descripcion }}</textarea>
         </div>
 
       </div>
     </div>
 
-    <!-- APARIENCIA -->
+    <!-- ══════════════════════════════════════
+         APARIENCIA
+    ══════════════════════════════════════ -->
     <div class="card" style="margin-bottom:16px">
       <div class="card-header"><div class="card-title">Apariencia de tu página pública</div></div>
       <div class="card-body">
@@ -70,10 +156,10 @@
           </div>
         </div>
 
-        <!-- TEMAS PREDEFINIDOS -->
+        <!-- Temas predefinidos -->
         <div class="form-group">
           <label class="form-label">Tema de fondo</label>
-          <div class="temas-grid" id="temas-grid">
+          <div class="temas-grid">
             {% for valor, etiqueta in TEMAS_FONDO %}
             <label class="tema-card {% if dentista.tema_fondo == valor %}selected{% endif %}">
               <input type="radio" name="tema_fondo" value="{{ valor }}"
@@ -86,28 +172,45 @@
           </div>
         </div>
 
-        <!-- IMAGEN PERSONALIZADA -->
-        <div class="form-group" id="seccion-imagen"
+        <!-- Imagen de fondo personalizada -->
+        <div class="form-group" id="seccion-imagen-fondo"
              style="display:{% if dentista.tema_fondo == 'personalizado' %}block{% else %}none{% endif %}">
-          <label class="form-label">Imagen de fondo personalizada</label>
+          <label class="form-label">Imagen de fondo</label>
+
           {% if dentista.imagen_fondo %}
-          <div style="margin-bottom:8px">
-            <img src="{{ dentista.imagen_fondo.url }}" alt="Fondo actual"
-                 style="width:100%;max-height:120px;object-fit:cover;border-radius:8px;border:1px solid #e5e7eb">
+          <div class="fondo-preview-actual">
+            <img src="{{ dentista.imagen_fondo.url }}" alt="Fondo actual" class="fondo-preview-img">
+            <div class="fondo-preview-overlay">
+              <button type="button" class="btn btn-danger btn-sm"
+                      onclick="confirmarEliminarFondo()">
+                <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                </svg>
+                Eliminar imagen de fondo
+              </button>
+            </div>
           </div>
           {% endif %}
-          <input type="file" name="imagen_fondo" accept="image/*" class="form-control">
-          <div class="form-hint">La imagen se mostrará con 18% de opacidad de fondo. JPG o PNG recomendado.</div>
+
+          <input type="file" name="imagen_fondo" accept="image/*" class="form-control"
+                 style="margin-top:{% if dentista.imagen_fondo %}10px{% else %}0{% endif %}">
+          <input type="hidden" name="eliminar_imagen_fondo" id="flag-eliminar-fondo" value="0">
+          <div class="form-hint">Se mostrará con 18% opacidad de fondo · JPG o PNG · Máx. 10 MB</div>
         </div>
 
       </div>
     </div>
 
-    <button type="submit" class="btn btn-primary">Guardar todos los cambios</button>
+    <button type="submit" class="btn btn-primary" id="btn-guardar">
+      <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path d="M5 13l4 4L19 7"/>
+      </svg>
+      Guardar todos los cambios
+    </button>
 
   </form>
 
-  <!-- INFO CUENTA -->
+  <!-- Info cuenta -->
   <div class="card" style="margin-top:16px">
     <div class="card-header"><div class="card-title">Información de la cuenta</div></div>
     <div class="card-body">
@@ -128,39 +231,360 @@
     </div>
   </div>
 
-</div>
+</div><!-- /max-width -->
 {% endblock %}
 
 {% block extra_js %}
 <style>
-.temas-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:8px;margin-top:4px}
-.tema-card{cursor:pointer;border-radius:10px;border:2px solid #e5e7eb;padding:8px;text-align:center;transition:all .15s;position:relative}
-.tema-card input{position:absolute;opacity:0;width:0;height:0}
-.tema-card.selected,.tema-card:has(input:checked){border-color:#059669;background:#f0fdf4}
-.tema-card:hover{border-color:#d1d5db}
-.tema-preview{height:36px;border-radius:6px;margin-bottom:6px;border:1px solid rgba(0,0,0,.06)}
-.tema-label{font-size:11px;color:#374151;line-height:1.3}
-/* colores de preview */
-.tema-minimal  {background:#f8fafc}
-.tema-verde    {background:linear-gradient(135deg,#ecfdf5,#d1fae5)}
-.tema-azul     {background:linear-gradient(135deg,#eff6ff,#dbeafe)}
-.tema-coral    {background:linear-gradient(135deg,#fff1f2,#ffe4e6)}
-.tema-kawaii   {background:linear-gradient(135deg,#fdf4ff,#fae8ff)}
-.tema-oscuro   {background:linear-gradient(135deg,#0f172a,#1e293b)}
-.tema-personalizado{background:repeating-linear-gradient(45deg,#f0f0f0,#f0f0f0 10px,#e8e8e8 10px,#e8e8e8 20px)}
+/* ── AVATAR UPLOAD ZONE ── */
+.avatar-upload-zone {
+  display: flex;
+  align-items: flex-start;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.avatar-wrap {
+  position: relative;
+  flex-shrink: 0;
+}
+
+/* Avatar con foto */
+.avatar-img-large {
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid #e5e7eb;
+  display: block;
+  transition: all .25s ease;
+  box-shadow: 0 4px 14px rgba(0,0,0,.1);
+}
+
+.avatar-img-large.hidden { display: none; }
+
+/* Overlay hover para cambiar foto */
+.avatar-overlay {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: rgba(0,0,0,.5);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  opacity: 0;
+  cursor: pointer;
+  transition: opacity .2s ease;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.avatar-wrap:hover .avatar-overlay { opacity: 1; }
+
+/* Placeholder sin foto */
+.avatar-placeholder {
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  border: 2.5px dashed #d1d5db;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  background: #f9fafb;
+  transition: all .2s ease;
+  gap: 4px;
+}
+
+.avatar-placeholder:hover {
+  border-color: #059669;
+  background: #f0fdf4;
+}
+
+.avatar-initials {
+  font-size: 24px;
+  font-weight: 700;
+  color: #9ca3af;
+  line-height: 1;
+}
+
+.avatar-placeholder-hint {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  color: #9ca3af;
+  font-size: 9px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+}
+
+.avatar-placeholder:hover .avatar-initials,
+.avatar-placeholder:hover .avatar-placeholder-hint { color: #059669; }
+
+/* Controles */
+.avatar-controls {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  padding-top: 4px;
+}
+
+.avatar-hint {
+  font-size: 11px;
+  color: #9ca3af;
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* Preview msg */
+.preview-msg {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  color: #059669;
+  background: #f0fdf4;
+  border: 1px solid #a7f3d0;
+  border-radius: 7px;
+  padding: 5px 10px;
+  animation: fadeSlideIn .2s ease;
+}
+
+.preview-msg.hidden { display: none; }
+
+@keyframes fadeSlideIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Avatar animación al cambiar */
+@keyframes avatarPop {
+  0%  { transform: scale(1); }
+  50% { transform: scale(1.08); }
+  100%{ transform: scale(1); }
+}
+.avatar-pop { animation: avatarPop .3s ease; }
+
+/* Fondo preview */
+.fondo-preview-actual {
+  position: relative;
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 8px;
+  border: 1px solid #e5e7eb;
+}
+
+.fondo-preview-img {
+  width: 100%;
+  height: 110px;
+  object-fit: cover;
+  display: block;
+}
+
+.fondo-preview-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity .2s;
+}
+
+.fondo-preview-actual:hover .fondo-preview-overlay { opacity: 1; }
+
+/* Temas */
+.temas-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.tema-card {
+  cursor: pointer;
+  border-radius: 10px;
+  border: 2px solid #e5e7eb;
+  padding: 8px;
+  text-align: center;
+  transition: all .15s;
+  position: relative;
+}
+
+.tema-card input { position: absolute; opacity: 0; width: 0; height: 0; }
+.tema-card.selected,
+.tema-card:has(input:checked) { border-color: #059669; background: #f0fdf4; }
+.tema-card:hover { border-color: #d1d5db; }
+
+.tema-preview { height: 34px; border-radius: 6px; margin-bottom: 5px; border: 1px solid rgba(0,0,0,.06); }
+.tema-label   { font-size: 10px; color: #374151; line-height: 1.3; }
+
+.tema-minimal      { background: #f8fafc; }
+.tema-verde        { background: linear-gradient(135deg, #ecfdf5, #d1fae5); }
+.tema-azul         { background: linear-gradient(135deg, #eff6ff, #dbeafe); }
+.tema-coral        { background: linear-gradient(135deg, #fff1f2, #ffe4e6); }
+.tema-kawaii       { background: linear-gradient(135deg, #fdf4ff, #fae8ff); }
+.tema-oscuro       { background: linear-gradient(135deg, #0f172a, #1e293b); }
+.tema-personalizado{ background: repeating-linear-gradient(45deg,#f0f0f0,#f0f0f0 8px,#e8e8e8 8px,#e8e8e8 16px); }
+
+/* Alerta auto-hide */
+@keyframes alertFade {
+  0%   { opacity: 1; }
+  80%  { opacity: 1; }
+  100% { opacity: 0; height: 0; padding: 0; margin: 0; overflow: hidden; }
+}
+#alert-ok { animation: alertFade 4s ease forwards; }
 </style>
+
 <script>
+/* ── Preview de foto antes de subir ── */
+let fotoOriginalUrl = "{% if dentista.foto_perfil %}{{ dentista.foto_perfil.url }}{% endif %}";
+let tieneNuevaFoto  = false;
+
+function previewFoto(input) {
+  if (!input.files || !input.files[0]) return;
+  const file = input.files[0];
+
+  // Validar tamaño en cliente
+  if (file.size > 5 * 1024 * 1024) {
+    alert('La foto no puede superar los 5 MB.');
+    input.value = '';
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const preview   = document.getElementById('avatar-preview');
+    const placeholder = document.getElementById('avatar-placeholder');
+    const overlay   = document.querySelector('.avatar-overlay');
+
+    preview.src = e.target.result;
+    preview.classList.remove('hidden');
+    preview.classList.add('avatar-pop');
+    setTimeout(() => preview.classList.remove('avatar-pop'), 400);
+
+    if (placeholder) placeholder.style.display = 'none';
+    if (overlay)     overlay.style.display = 'flex';
+
+    // Resetear flag de eliminar
+    document.getElementById('flag-eliminar-foto').value = '0';
+    tieneNuevaFoto = true;
+
+    // Mostrar msg de preview
+    const msg = document.getElementById('preview-msg');
+    document.getElementById('preview-filename').textContent = file.name;
+    msg.classList.remove('hidden');
+  };
+  reader.readAsDataURL(file);
+}
+
+function cancelarFoto() {
+  const input = document.getElementById('id-foto-perfil');
+  input.value = '';
+  tieneNuevaFoto = false;
+
+  const preview     = document.getElementById('avatar-preview');
+  const placeholder = document.getElementById('avatar-placeholder');
+  const overlay     = document.querySelector('.avatar-overlay');
+
+  if (fotoOriginalUrl) {
+    preview.src = fotoOriginalUrl;
+    preview.classList.remove('hidden');
+  } else {
+    preview.classList.add('hidden');
+    if (placeholder) placeholder.style.display = 'flex';
+    if (overlay)     overlay.style.display = 'none';
+  }
+
+  document.getElementById('preview-msg').classList.add('hidden');
+}
+
+/* ── Eliminar foto de perfil ── */
+function confirmarEliminarFoto() {
+  if (!confirm('¿Eliminar la foto de perfil? Esta acción no se puede deshacer.')) return;
+
+  document.getElementById('flag-eliminar-foto').value = '1';
+  document.getElementById('id-foto-perfil').value = '';
+
+  const preview     = document.getElementById('avatar-preview');
+  const placeholder = document.getElementById('avatar-placeholder');
+  const overlay     = document.querySelector('.avatar-overlay');
+  const btnEliminar = document.getElementById('btn-eliminar-foto');
+
+  // Animar desaparición
+  preview.style.transition = 'opacity .25s, transform .25s';
+  preview.style.opacity    = '0';
+  preview.style.transform  = 'scale(0.8)';
+
+  setTimeout(() => {
+    preview.classList.add('hidden');
+    preview.style.opacity   = '';
+    preview.style.transform = '';
+    if (placeholder) { placeholder.style.display = 'flex'; }
+    if (overlay)     { overlay.style.display = 'none'; }
+    if (btnEliminar) { btnEliminar.style.display = 'none'; }
+    fotoOriginalUrl = '';
+    document.getElementById('preview-msg').classList.add('hidden');
+  }, 250);
+}
+
+/* ── Eliminar imagen de fondo ── */
+function confirmarEliminarFondo() {
+  if (!confirm('¿Eliminar la imagen de fondo?')) return;
+  document.getElementById('flag-eliminar-fondo').value = '1';
+  const zona = document.querySelector('.fondo-preview-actual');
+  if (zona) {
+    zona.style.transition = 'opacity .2s';
+    zona.style.opacity    = '0';
+    setTimeout(() => zona.remove(), 200);
+  }
+}
+
+/* ── Iniciales en tiempo real ── */
+function actualizarIniciales(valor) {
+  const el = document.getElementById('avatar-initials');
+  if (!el) return;
+  const palabras = valor.trim().split(/\s+/);
+  const iniciales = palabras.length >= 2
+    ? (palabras[0][0] + palabras[1][0]).toUpperCase()
+    : valor.slice(0, 2).toUpperCase();
+  el.textContent = iniciales || '??';
+}
+
+/* ── Color picker ── */
 const colorPick = document.getElementById('color-pick');
 const colorHex  = document.getElementById('color-hex');
-colorPick.addEventListener('input', () => { colorHex.value = colorPick.value; });
-
-function onTemaChange(tema) {
-  document.getElementById('seccion-imagen').style.display =
-    tema === 'personalizado' ? 'block' : 'none';
-  // marcar visualmente
-  document.querySelectorAll('.tema-card').forEach(c => c.classList.remove('selected'));
-  document.querySelector(`.tema-card input[value="${tema}"]`)
-    ?.closest('.tema-card')?.classList.add('selected');
+if (colorPick) {
+  colorPick.addEventListener('input', () => { colorHex.value = colorPick.value; });
 }
+
+/* ── Temas ── */
+function onTemaChange(tema) {
+  document.getElementById('seccion-imagen-fondo').style.display =
+    tema === 'personalizado' ? 'block' : 'none';
+  document.querySelectorAll('.tema-card').forEach(c => c.classList.remove('selected'));
+  const radio = document.querySelector(`.tema-card input[value="${tema}"]`);
+  if (radio) radio.closest('.tema-card').classList.add('selected');
+}
+
+/* ── Submit: loading en el botón ── */
+document.getElementById('perfil-form').addEventListener('submit', function() {
+  const btn = document.getElementById('btn-guardar');
+  btn.disabled     = true;
+  btn.innerHTML    = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="animation:spin 1s linear infinite"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg> Guardando…';
+});
+
+/* ── Spinning icon ── */
+const style = document.createElement('style');
+style.textContent = '@keyframes spin { to { transform: rotate(360deg); } }';
+document.head.appendChild(style);
 </script>
 {% endblock %}
