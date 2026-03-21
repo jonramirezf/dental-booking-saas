@@ -1,0 +1,35 @@
+{% load static %}
+<!DOCTYPE html>
+<!-- agenda/templates/agenda/cancelacion_ok.html -->
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Reserva cancelada</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',sans-serif;background:#f0f4f8;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+.card{background:#fff;border-radius:16px;padding:40px 36px;max-width:400px;width:100%;text-align:center;box-shadow:0 4px 24px rgba(0,0,0,.08)}
+.icon{width:60px;height:60px;border-radius:50%;background:#fef2f2;color:#dc2626;font-size:26px;display:flex;align-items:center;justify-content:center;margin:0 auto 18px}
+h1{font-size:20px;font-weight:600;color:#111827;margin-bottom:8px}
+p{font-size:14px;color:#6b7280;line-height:1.6;margin-bottom:20px}
+.detail{background:#f9fafb;border-radius:10px;padding:14px 18px;margin-bottom:20px;text-align:left;font-size:13px;color:#374151}
+.detail strong{display:block;font-size:11px;color:#9ca3af;text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px}
+.btn{display:block;padding:12px;border-radius:9px;background:#059669;color:#fff;font-size:14px;font-weight:600;text-decoration:none;text-align:center}
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="icon">✕</div>
+  <h1>Reserva cancelada</h1>
+  <p>Tu cita ha sido cancelada. Si necesitas reagendar, vuelve a la página del consultorio.</p>
+  <div class="detail">
+    <strong>Fecha</strong>{{ reserva.fecha|date:"d/m/Y" }}
+    <strong style="margin-top:8px;display:block">Hora</strong>{{ reserva.hora|time:"H:i" }}
+    <strong style="margin-top:8px;display:block">Consultorio</strong>{{ reserva.dentista.nombre_consultorio }}
+  </div>
+  <a href="/{{ reserva.dentista.slug }}/" class="btn">Hacer una nueva reserva</a>
+</div>
+</body>
+</html>
