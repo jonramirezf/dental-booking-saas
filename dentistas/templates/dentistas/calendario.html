@@ -1,0 +1,397 @@
+{% extends "dentistas/base.html" %}
+{% block title %}Calendario{% endblock %}
+{% block topbar_title %}Calendario — {{ nombre_mes }} {{ anio }}{% endblock %}
+
+{% block content %}
+
+{# ── NAV SUPERIOR ── #}
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px">
+  <div style="display:flex;align-items:center;gap:8px">
+    <a href="?anio={{ mes_anterior.year }}&mes={{ mes_anterior.month }}"
+       class="btn btn-secondary btn-sm">&#8592;</a>
+    <span style="font-size:17px;font-weight:700;color:#111827;min-width:180px;text-align:center">
+      {{ nombre_mes }} {{ anio }}
+    </span>
+    <a href="?anio={{ mes_siguiente.year }}&mes={{ mes_siguiente.month }}"
+       class="btn btn-secondary btn-sm">&#8594;</a>
+    <a href="?anio={{ hoy.year }}&mes={{ hoy.month }}"
+       class="btn btn-secondary btn-sm">Hoy</a>
+  </div>
+  <div style="display:flex;align-items:center;gap:10px">
+    <div style="background:#fff;border:1px solid #f3f4f6;border-radius:10px;padding:8px 16px;font-size:13px;color:#374151">
+      <strong style="color:#059669">{{ total_mes }}</strong>
+      cita{{ total_mes|pluralize:"s" }} este mes
+    </div>
+    <a href="{% url 'dentistas:reservas' %}" class="btn btn-primary btn-sm">Ver lista →</a>
+  </div>
+</div>
+
+{# ── GRILLA CALENDARIO ── #}
+<div class="gc-panel">
+
+  {# Encabezados: Lu Ma Mi Ju Vi Sá Do #}
+  <div class="gc-head">
+    <div class="gc-head-cell">Lu</div>
+    <div class="gc-head-cell">Ma</div>
+    <div class="gc-head-cell">Mi</div>
+    <div class="gc-head-cell">Ju</div>
+    <div class="gc-head-cell">Vi</div>
+    <div class="gc-head-cell gc-finde">Sá</div>
+    <div class="gc-head-cell gc-finde">Do</div>
+  </div>
+
+  {# Semanas #}
+  {% for semana in semanas %}
+  <div class="gc-semana">
+    {% for celda in semana %}
+      {% if celda %}
+      <div class="gc-celda
+          {% if celda.es_hoy %}gc-hoy{% endif %}
+          {% if celda.pasado %}gc-pasado{% endif %}
+          {% if celda.reservas %}gc-tiene{% endif %}">
+
+        {# Número del día #}
+        <div class="gc-celda-top">
+          <span class="gc-num {% if celda.es_hoy %}gc-num-hoy{% endif %}">
+            {{ celda.dia }}
+          </span>
+          {% if celda.reservas %}
+          <span class="gc-badge-count">{{ celda.reservas|length }}</span>
+          {% endif %}
+        </div>
+
+        {# Eventos #}
+        <div class="gc-eventos">
+          {% for r in celda.reservas|slice:":3" %}
+          <div class="gc-evento gc-ev-{{ r.estado }}"
+               onclick="abrirDetalle(
+                 {{ r.id }},
+                 '{{ r.paciente.nombre|escapejs }}',
+                 '{{ r.hora|time:"H:i" }}',
+                 '{{ celda.fecha|date:"d/m/Y" }}',
+                 '{{ r.estado }}',
+                 '{{ r.paciente.email|escapejs }}',
+                 '{{ r.paciente.telefono|default:""|escapejs }}'
+               )">
+            <span class="gc-ev-hora">{{ r.hora|time:"H:i" }}</span>
+            <span class="gc-ev-nombre">{{ r.paciente.nombre|truncatechars:14 }}</span>
+          </div>
+          {% endfor %}
+          {% if celda.reservas|length > 3 %}
+          <div class="gc-mas">+{{ celda.reservas|length|add:"-3" }} más</div>
+          {% endif %}
+        </div>
+
+      </div>
+      {% else %}
+      <div class="gc-celda gc-vacia"></div>
+      {% endif %}
+    {% endfor %}
+  </div>
+  {% endfor %}
+
+</div>{# /gc-panel #}
+
+{# ── LEYENDA ── #}
+<div class="gc-leyenda">
+  <span class="gc-ley-item"><span class="gc-ley-dot pendiente"></span>Pendiente</span>
+  <span class="gc-ley-item"><span class="gc-ley-dot confirmada"></span>Confirmada</span>
+  <span class="gc-ley-item"><span class="gc-ley-dot cancelada"></span>Cancelada</span>
+  <span class="gc-ley-item"><span class="gc-ley-dot completada"></span>Completada</span>
+</div>
+
+{# ── MODAL DETALLE ── #}
+<div class="modal-overlay" id="modal-detalle">
+  <div class="modal" style="max-width:400px">
+
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px">
+      <div>
+        <div class="modal-title" id="md-title">Detalle de cita</div>
+        <div style="font-size:12px;color:#9ca3af;margin-top:2px" id="md-fecha-label"></div>
+      </div>
+      <button onclick="cerrarDetalle()"
+              style="background:none;border:none;font-size:20px;color:#9ca3af;cursor:pointer;line-height:1">✕</button>
+    </div>
+
+    {# Card del paciente #}
+    <div style="display:flex;align-items:center;gap:12px;background:#f9fafb;border-radius:10px;padding:14px;margin-bottom:14px">
+      <div id="md-avatar"
+           style="width:44px;height:44px;border-radius:50%;background:#d1fae5;color:#065f46;font-size:16px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+      </div>
+      <div style="min-width:0">
+        <div style="font-size:15px;font-weight:600;color:#111827" id="md-nombre"></div>
+        <div style="font-size:12px;color:#059669;margin-top:2px" id="md-email"></div>
+        <div style="font-size:12px;color:#9ca3af;margin-top:1px" id="md-tel"></div>
+      </div>
+    </div>
+
+    {# Estado #}
+    <div style="margin-bottom:16px">
+      <span id="md-badge" class="badge"></span>
+    </div>
+
+    {# Acciones #}
+    <div id="md-acciones" style="display:flex;gap:8px;flex-wrap:wrap"></div>
+    <div id="md-error" class="alert alert-error" style="margin-top:10px;display:none"></div>
+
+  </div>
+</div>
+
+{% endblock %}
+
+
+{% block extra_js %}
+<style>
+/* ══════════════════════════════════════
+   CSS COMPLETO DEL CALENDARIO
+   (incluido aquí para no depender de base.html)
+══════════════════════════════════════ */
+
+/* Panel contenedor */
+.gc-panel {
+  background: #fff;
+  border-radius: 14px;
+  border: 1px solid #edf0f5;
+  overflow: hidden;
+  box-shadow: 0 1px 8px rgba(0,0,0,.04);
+}
+
+/* Encabezado de días */
+.gc-head {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  border-bottom: 1.5px solid #f3f4f6;
+  background: #fafafa;
+}
+.gc-head-cell {
+  text-align: center;
+  padding: 10px 4px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #9ca3af;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+}
+.gc-finde { color: #d1d5db; }
+
+/* Filas de semana */
+.gc-semana {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  border-bottom: 1px solid #f9fafb;
+  min-height: 110px;
+}
+.gc-semana:last-child { border-bottom: none; }
+
+/* Celdas */
+.gc-celda {
+  border-right: 1px solid #f9fafb;
+  padding: 6px 7px;
+  vertical-align: top;
+  cursor: default;
+  transition: background .1s;
+  min-height: 110px;
+}
+.gc-celda:last-child { border-right: none; }
+.gc-vacia { background: #fafafa; }
+.gc-pasado { background: #fafafa; }
+.gc-pasado .gc-num { color: #d1d5db; }
+.gc-hoy { background: #f0fdf4; }
+.gc-tiene:not(.gc-pasado):hover { background: #f8fafc; cursor: pointer; }
+
+/* Número del día */
+.gc-celda-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 5px;
+}
+.gc-num {
+  font-size: 13px;
+  font-weight: 600;
+  color: #374151;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  line-height: 1;
+}
+.gc-num-hoy {
+  background: #059669;
+  color: #fff;
+  font-weight: 700;
+}
+.gc-badge-count {
+  font-size: 9px;
+  font-weight: 700;
+  background: #e0f2fe;
+  color: #0369a1;
+  padding: 1px 5px;
+  border-radius: 20px;
+}
+.gc-hoy .gc-badge-count { background: #bbf7d0; color: #166534; }
+
+/* Eventos */
+.gc-eventos { display: flex; flex-direction: column; gap: 2px; }
+.gc-evento {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 5px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 10px;
+  line-height: 1.3;
+  transition: opacity .12s, transform .12s;
+  overflow: hidden;
+}
+.gc-evento:hover { opacity: .8; transform: scale(1.01); }
+
+.gc-ev-pendiente  { background: #fffbeb; border-left: 2.5px solid #f59e0b; }
+.gc-ev-confirmada { background: #ecfdf5; border-left: 2.5px solid #10b981; }
+.gc-ev-cancelada  { background: #fef2f2; border-left: 2.5px solid #ef4444; opacity: .6; }
+.gc-ev-completada { background: #eff6ff; border-left: 2.5px solid #3b82f6; opacity: .75; }
+
+.gc-ev-hora   { font-weight: 700; color: #374151; flex-shrink: 0; }
+.gc-ev-nombre { color: #6b7280; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.gc-mas {
+  font-size: 9px;
+  color: #9ca3af;
+  padding: 1px 4px;
+  font-style: italic;
+}
+
+/* Leyenda */
+.gc-leyenda {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-top: 14px;
+  padding: 0 4px;
+}
+.gc-ley-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  color: #6b7280;
+}
+.gc-ley-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+.gc-ley-dot.pendiente  { background: #f59e0b; }
+.gc-ley-dot.confirmada { background: #10b981; }
+.gc-ley-dot.cancelada  { background: #ef4444; }
+.gc-ley-dot.completada { background: #3b82f6; }
+
+/* Responsive: en móvil ocultar fin de semana */
+@media (max-width: 640px) {
+  .gc-semana   { min-height: 80px; }
+  .gc-celda    { padding: 4px 3px; min-height: 80px; }
+  .gc-ev-nombre { display: none; }
+  .gc-evento   { justify-content: center; }
+}
+</style>
+
+<script>
+const ESTADOS_LABEL = {
+  pendiente:  'Pendiente',
+  confirmada: 'Confirmada',
+  cancelada:  'Cancelada',
+  completada: 'Completada',
+};
+
+let citaActualId = null;
+
+function abrirDetalle(id, nombre, hora, fecha, estado, email, tel) {
+  citaActualId = id;
+
+  /* Iniciales del paciente */
+  const partes = nombre.trim().split(/\s+/);
+  const iniciales = partes.length >= 2
+    ? (partes[0][0] + partes[1][0]).toUpperCase()
+    : nombre.slice(0, 2).toUpperCase();
+
+  document.getElementById('md-title').textContent      = hora + ' — ' + nombre;
+  document.getElementById('md-fecha-label').textContent = fecha;
+  document.getElementById('md-avatar').textContent      = iniciales;
+  document.getElementById('md-nombre').textContent      = nombre;
+  document.getElementById('md-email').textContent       = email || '—';
+  document.getElementById('md-tel').textContent         = tel   || 'Sin teléfono';
+
+  const badge = document.getElementById('md-badge');
+  badge.className   = 'badge ' + estado;
+  badge.textContent = ESTADOS_LABEL[estado] || estado;
+
+  /* Acciones disponibles según estado */
+  const acc = document.getElementById('md-acciones');
+  acc.innerHTML = '';
+  document.getElementById('md-error').style.display = 'none';
+
+  const btns = [];
+  if (estado === 'pendiente')  btns.push(['✓ Confirmar', 'confirmada', 'btn-success'], ['✕ Cancelar', 'cancelada', 'btn-danger']);
+  if (estado === 'confirmada') btns.push(['Completar', 'completada', 'btn-secondary'], ['✕ Cancelar', 'cancelada', 'btn-danger']);
+
+  btns.forEach(([lbl, st, cls]) => {
+    const b = document.createElement('button');
+    b.className   = `btn ${cls} btn-sm`;
+    b.textContent = lbl;
+    b.onclick     = () => cambiarEstado(citaActualId, st, b);
+    acc.appendChild(b);
+  });
+
+  document.getElementById('modal-detalle').classList.add('open');
+}
+
+function cerrarDetalle() {
+  document.getElementById('modal-detalle').classList.remove('open');
+}
+
+function cambiarEstado(id, estado, btn) {
+  btn.disabled    = true;
+  btn.textContent = '…';
+
+  fetch('{% url "dentistas:api_cambiar_estado" %}', {
+    method:  'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRFToken':  getCookie('csrftoken'),
+    },
+    body: JSON.stringify({ id, estado }),
+  })
+  .then(r => r.json())
+  .then(d => {
+    if (d.ok) {
+      cerrarDetalle();
+      location.reload();   /* recarga para reflejar el cambio en la grilla */
+    } else {
+      const errEl = document.getElementById('md-error');
+      errEl.textContent    = d.error || 'Error al cambiar estado';
+      errEl.style.display  = 'block';
+      btn.disabled    = false;
+      btn.textContent = '¡Error!';
+    }
+  })
+  .catch(() => {
+    btn.disabled    = false;
+    btn.textContent = '¡Error de red!';
+  });
+}
+
+function getCookie(name) {
+  const v = document.cookie.match('(^|;) ?' + name + '=([^;]*)(;|$)');
+  return v ? v[2] : null;
+}
+
+/* Cerrar modal al clicar fuera */
+document.getElementById('modal-detalle').addEventListener('click', function(e) {
+  if (e.target === this) cerrarDetalle();
+});
+</script>
+{% endblock %}
