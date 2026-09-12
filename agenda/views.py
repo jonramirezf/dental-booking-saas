@@ -151,6 +151,7 @@ def crear_reserva(request, slug):
                 return JsonResponse({'error': 'Horario no disponible.'}, status=400)
 
             paciente, _ = Paciente.objects.get_or_create(
+                dentista=dentista,
                 email=email,
                 defaults={'nombre': nombre, 'telefono': telefono},
             )

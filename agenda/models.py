@@ -85,6 +85,7 @@ class BloqueHorario(models.Model):
 
 
 class Paciente(models.Model):
+    dentista = models.ForeignKey(PerfilDentista, on_delete=models.CASCADE, related_name='pacientes', null=True, blank=True)
     nombre = models.CharField(max_length=120)
     email = models.EmailField()
     telefono = models.CharField(max_length=20, blank=True)
@@ -92,6 +93,12 @@ class Paciente(models.Model):
 
     class Meta:
         ordering = ['nombre']
+        constraints = [
+            models.UniqueConstraint(
+                fields=['dentista', 'email'],
+                 name='unique_paciente_email_por_dentista'
+        )
+    ]
 
     def __str__(self):
         return f"{self.nombre} <{self.email}>"
