@@ -4,7 +4,7 @@
 # ============================================================
 
 # Django core
-Django==5.0.6
+Django==5.2.18
 gunicorn==22.0.0
 
 # Base de datos producción (PostgreSQL)
@@ -18,10 +18,10 @@ python-decouple==3.8
 whitenoise==6.7.0
 
 # Imágenes (campos ImageField)
-Pillow==10.4.0
+Pillow==12.3.0
 
 # Requests (usado por ia/services.py)
-requests==2.32.3
+requests==2.34.2
 
 # Seguridad adicional
 django-cors-headers==4.4.0
