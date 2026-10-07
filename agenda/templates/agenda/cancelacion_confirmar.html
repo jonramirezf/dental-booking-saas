@@ -1,0 +1,292 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Cancelar reserva</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family:
+                system-ui,
+                -apple-system,
+                BlinkMacSystemFont,
+                "Segoe UI",
+                sans-serif;
+
+            background: #f0f4f8;
+
+            min-height: 100vh;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            padding: 20px;
+        }
+
+        .card {
+            width: 100%;
+            max-width: 430px;
+
+            background: white;
+
+            border-radius: 16px;
+
+            padding: 36px;
+
+            box-shadow:
+                0 4px 24px
+                rgba(0, 0, 0, 0.08);
+        }
+
+        .icon {
+            width: 60px;
+            height: 60px;
+
+            border-radius: 50%;
+
+            background: #fff7ed;
+            color: #ea580c;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            font-size: 26px;
+
+            margin:
+                0 auto
+                18px;
+        }
+
+        h1 {
+            text-align: center;
+
+            font-size: 22px;
+
+            color: #111827;
+
+            margin-bottom: 10px;
+        }
+
+        .description {
+            text-align: center;
+
+            color: #6b7280;
+
+            font-size: 14px;
+
+            line-height: 1.6;
+
+            margin-bottom: 22px;
+        }
+
+        .detail {
+            background: #f9fafb;
+
+            border-radius: 10px;
+
+            padding: 16px;
+
+            margin-bottom: 22px;
+
+            color: #374151;
+
+            font-size: 14px;
+        }
+
+        .detail-row {
+            margin-bottom: 12px;
+        }
+
+        .detail-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .detail strong {
+            display: block;
+
+            font-size: 11px;
+
+            color: #9ca3af;
+
+            text-transform: uppercase;
+
+            letter-spacing: .05em;
+
+            margin-bottom: 3px;
+        }
+
+        .btn-danger {
+            width: 100%;
+
+            border: none;
+
+            border-radius: 9px;
+
+            padding: 12px;
+
+            background: #dc2626;
+            color: white;
+
+            font-size: 14px;
+            font-weight: 600;
+
+            cursor: pointer;
+        }
+
+        .btn-danger:hover {
+            background: #b91c1c;
+        }
+
+        .btn-back {
+            display: block;
+
+            margin-top: 12px;
+
+            padding: 11px;
+
+            border-radius: 9px;
+
+            text-align: center;
+
+            text-decoration: none;
+
+            background: #f3f4f6;
+            color: #374151;
+
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .status {
+            padding: 12px;
+
+            background: #fef2f2;
+
+            border-radius: 8px;
+
+            color: #991b1b;
+
+            text-align: center;
+
+            font-size: 14px;
+
+            margin-bottom: 16px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="card">
+
+        <div class="icon">
+            !
+        </div>
+
+        <h1>
+            Cancelar reserva
+        </h1>
+
+        {% if puede_cancelar %}
+
+            <p class="description">
+                Confirma que deseas cancelar esta cita.
+                La reserva no se modificará hasta que
+                presiones el botón de confirmación.
+            </p>
+
+        {% else %}
+
+            <div class="status">
+
+                {% if reserva.estado == "cancelada" %}
+
+                    Esta reserva ya fue cancelada.
+
+                {% else %}
+
+                    Esta reserva ya no puede cancelarse.
+
+                {% endif %}
+
+            </div>
+
+        {% endif %}
+
+        <div class="detail">
+
+            <div class="detail-row">
+
+                <strong>
+                    Fecha
+                </strong>
+
+                {{ reserva.fecha|date:"d/m/Y" }}
+
+            </div>
+
+            <div class="detail-row">
+
+                <strong>
+                    Hora
+                </strong>
+
+                {{ reserva.hora|time:"H:i" }}
+
+            </div>
+
+            <div class="detail-row">
+
+                <strong>
+                    Consultorio
+                </strong>
+
+                {{ reserva.dentista.nombre_consultorio }}
+
+            </div>
+
+        </div>
+
+        {% if puede_cancelar %}
+
+            <form method="post">
+
+                {% csrf_token %}
+
+                <button
+                    type="submit"
+                    class="btn-danger"
+                >
+                    Sí, cancelar reserva
+                </button>
+
+            </form>
+
+        {% endif %}
+
+        <a
+            href="/{{ reserva.dentista.slug }}/"
+            class="btn-back"
+        >
+            Volver al consultorio
+        </a>
+
+    </div>
+
+</body>
+</html>
